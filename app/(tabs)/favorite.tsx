@@ -2,23 +2,27 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   FlatList,
-  Pressable,
   RefreshControl,
   Text,
   View,
 } from 'react-native';
 
+import FileActionSheet from '@/components/FileActionSheet';
+import FileCard from '@/components/FileCard';
 import { HugeIcon } from '@/components/HugeIcon';
 import { Palette } from '@/constants/Colors';
 import { useFilesStore } from '@/src/stores/filesStore';
+import type { DeviceFile } from '@/src/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FavoritesScreen() {
   const router = useRouter();
   const favorites = useFilesStore((s) => s.favorites);
   const loadAll = useFilesStore((s) => s.loadAll);
-  const toggleFavorite = useFilesStore((s) => s.toggleFavorite);
+  const removeFile = useFilesStore((s) => s.removeFile);
   const [refreshing, setRefreshing] = useState(false);
+  const [fileActionSheetVisible, setFileActionSheetVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<DeviceFile | null>(null);
 
   useEffect(() => {
     loadAll();
@@ -28,12 +32,6 @@ export default function FavoritesScreen() {
     setRefreshing(true);
     await loadAll();
     setRefreshing(false);
-  };
-
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -76,32 +74,29 @@ export default function FavoritesScreen() {
               </Text>
             </View>
           }
-          renderItem={({ item, index }) => (
-            <View className="bg-[#1C1C1E] rounded-3xl p-4 mb-3">
-              <View className="flex-row items-center">
-                <View className="w-12 h-12 bg-[#0A0A0A] rounded-2xl items-center justify-center mr-3">
-                  <HugeIcon name="merge" size={22} color="#FF3B30" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-base font-extrabold text-white" numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <View className="flex-row items-center mt-1 gap-2">
-                    <Text className="text-xs font-bold text-[#9C9CA3]">
-                      {formatSize(item.size)}
-                    </Text>
-                    <View className="w-1 h-1 rounded-full bg-[#3A3A3C]" />
-                    <Text className="text-xs font-bold text-[#9C9CA3]">
-                      {item.pageCount} pages
-                    </Text>
-                  </View>
-                </View>
-                <Pressable onPress={() => toggleFavorite(item.id)} className="p-2">
-                  <HugeIcon name="rate" size={20} color="#FF3B30" />
-                </Pressable>
-              </View>
+          renderItem={({ item }) => (
+            <View className="mb-3">
+              <FileCard
+                file={item}
+                displayMode="list"
+                onMenuPress={(f) => {
+                  setSelectedFile(f);
+                  setFileActionSheetVisible(true);
+                }}
+              />
             </View>
           )}
+        />
+
+        {/* File Action Bottom Sheet */}
+        <FileActionSheet
+          visible={fileActionSheetVisible}
+          file={selectedFile}
+          onClose={() => setFileActionSheetVisible(false)}
+          onDelete={(fileId) => {
+            removeFile(fileId);
+            setFileActionSheetVisible(false);
+          }}
         />
       </View>
     </SafeAreaView>

@@ -2,24 +2,27 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   FlatList,
-  Pressable,
   RefreshControl,
   Text,
-  View,
+  View
 } from 'react-native';
 
+import FileActionSheet from '@/components/FileActionSheet';
+import FileCard from '@/components/FileCard';
 import { HugeIcon } from '@/components/HugeIcon';
 import { Palette } from '@/constants/Colors';
 import { useFilesStore } from '@/src/stores/filesStore';
+import type { DeviceFile } from '@/src/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RecentsScreen() {
   const router = useRouter();
   const files = useFilesStore((s) => s.files);
   const loadAll = useFilesStore((s) => s.loadAll);
-  const toggleFavorite = useFilesStore((s) => s.toggleFavorite);
   const removeFile = useFilesStore((s) => s.removeFile);
   const [refreshing, setRefreshing] = useState(false);
+  const [fileActionSheetVisible, setFileActionSheetVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<DeviceFile | null>(null);
 
   useEffect(() => {
     loadAll();
@@ -29,26 +32,6 @@ export default function RecentsScreen() {
     setRefreshing(true);
     await loadAll();
     setRefreshing(false);
-  };
-
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
-    const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return 'Just now';
-    if (diffMin < 60) return `${diffMin}m ago`;
-    const diffH = Math.floor(diffMin / 60);
-    if (diffH < 24) return `${diffH}h ago`;
-    const diffD = Math.floor(diffH / 24);
-    if (diffD < 7) return `${diffD}d ago`;
-    return d.toLocaleDateString();
-  };
-
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -87,45 +70,33 @@ export default function RecentsScreen() {
                 No files yet
               </Text>
               <Text className="text-[#9C9CA3] mt-1 text-center px-8 font-medium text-xs">
-                Import a PDF to get started with all the powerful tools
+                Import a file to get started with all the powerful tools
               </Text>
             </View>
           }
-          renderItem={({ item, index }) => (
-            <View className="bg-[#1C1C1E] rounded-3xl p-4 mb-3">
-              <View className="flex-row items-center">
-                <View className="w-12 h-12 bg-[#0A0A0A] rounded-2xl items-center justify-center mr-3">
-                  <HugeIcon name="merge" size={22} color="#FF3B30" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-base font-extrabold text-white" numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <View className="flex-row items-center mt-1 gap-2">
-                    <Text className="text-xs font-bold text-[#9C9CA3]">
-                      {formatSize(item.size)}
-                    </Text>
-                    <View className="w-1 h-1 rounded-full bg-[#3A3A3C]" />
-                    <Text className="text-xs font-bold text-[#9C9CA3]">
-                      {item.pageCount} pages
-                    </Text>
-                    <View className="w-1 h-1 rounded-full bg-[#3A3A3C]" />
-                    <Text className="text-xs font-bold text-[#9C9CA3]">
-                      {formatDate(item.modifiedAt)}
-                    </Text>
-                  </View>
-                </View>
-                <View className="flex-row items-center gap-1">
-                  <Pressable onPress={() => toggleFavorite(item.id)} className="p-2">
-                    <HugeIcon name="rate" size={18} color={item.isFavorite ? '#FF3B30' : '#3A3A3C'} />
-                  </Pressable>
-                  <Pressable onPress={() => removeFile(item.id)} className="p-2">
-                    <HugeIcon name="search" size={18} color="#3A3A3C" />
-                  </Pressable>
-                </View>
-              </View>
+          renderItem={({ item }) => (
+            <View className="mb-3">
+              <FileCard
+                file={item}
+                displayMode="list"
+                onMenuPress={(f) => {
+                  setSelectedFile(f);
+                  setFileActionSheetVisible(true);
+                }}
+              />
             </View>
           )}
+        />
+
+        {/* File Action Bottom Sheet */}
+        <FileActionSheet
+          visible={fileActionSheetVisible}
+          file={selectedFile}
+          onClose={() => setFileActionSheetVisible(false)}
+          onDelete={(fileId) => {
+            removeFile(fileId);
+            setFileActionSheetVisible(false);
+          }}
         />
       </View>
     </SafeAreaView>

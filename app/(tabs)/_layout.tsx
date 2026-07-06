@@ -1,8 +1,8 @@
 import {
   Bookmark02Icon,
   Clock04Icon,
-  Home01Icon,
-  ToolsIcon
+  FileStarIcon,
+  Home01Icon
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Tabs } from 'expo-router';
@@ -67,10 +67,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="tools"
         options={{
-          title: 'Tools',
+          title: 'More',
           tabBarIcon: ({ size, color }) => (
             <View className="w-7 h-7 items-center justify-center">
-              <HugeiconsIcon icon={ToolsIcon} color={color} size={size} />
+              <HugeiconsIcon icon={FileStarIcon} color={color} size={size} />
             </View>
           ),
         }}

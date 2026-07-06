@@ -16,12 +16,13 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
 
-    -- PDF files stored / imported into the app
+    -- Files stored / imported into the app
     CREATE TABLE IF NOT EXISTS pdf_files (
       id              TEXT PRIMARY KEY NOT NULL,
       uri             TEXT NOT NULL,
       name            TEXT NOT NULL,
       size            INTEGER NOT NULL DEFAULT 0,
+      file_type       TEXT NOT NULL DEFAULT 'pdf',
       page_count      INTEGER NOT NULL DEFAULT 0,
       created_at      TEXT NOT NULL DEFAULT (datetime('now')),
       modified_at     TEXT NOT NULL DEFAULT (datetime('now')),
@@ -61,6 +62,19 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
     -- Ensure single settings row exists
     INSERT OR IGNORE INTO user_settings (id) VALUES (1);
   `);
+
+  // -------- Migrations (run conditionally) --------
+
+  // Add file_type column if missing (for users who installed before it existed)
+  const columns = await db.getAllAsync<{ name: string }>(
+    `PRAGMA table_info(pdf_files);`
+  );
+  const hasFileType = columns.some((col) => col.name === 'file_type');
+  if (!hasFileType) {
+    await db.execAsync(
+      `ALTER TABLE pdf_files ADD COLUMN file_type TEXT NOT NULL DEFAULT 'pdf';`
+    );
+  }
 
   return db;
 }

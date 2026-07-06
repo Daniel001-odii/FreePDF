@@ -2,18 +2,23 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   FlatList,
+  Image,
+  Modal,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
   Text,
-  View
+  View,
 } from 'react-native';
 
-import { HugeIcon } from '@/components/HugeIcon';
+import FileActionSheet from '@/components/FileActionSheet';
+import FileCard from '@/components/FileCard';
 import { Palette } from '@/constants/Colors';
 import { TOOL_DEFINITIONS } from '@/src/constants/toolDefinitions';
 import { useFilesStore } from '@/src/stores/filesStore';
-import type { PDFFile, ToolDefinition } from '@/src/types';
+import type { DeviceFile, FileType } from '@/src/types';
+import * as DocumentPicker from 'expo-document-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, G, LinearGradient, Path, RadialGradient, Stop, SvgProps } from 'react-native-svg';
 
@@ -33,8 +38,6 @@ const CATEGORIES = [
   { id: 'scanner', name: 'Scan', icon: 'document-scanner' },
   { id: 'security', name: 'Secure', icon: 'password-protect' },
 ] as const;
-
-
 
 export function FluentColorCloud16(props: SvgProps) {
   return (
@@ -157,17 +160,175 @@ export function FluentWordToPdf28(props: SvgProps) {
   );
 }
 
+export function HugeiconsMenu04(props: any) {
+  return (
+    <Svg width="28" height="28" viewBox="0 0 24 24">{/* Icon from Huge Icons by Hugeicons - undefined */}<Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 5h10M4 12h16M7 19h10" /></Svg>
+  )
+}
 
+export function HugeiconsPlus(props: any) {
+  return (
+    <Svg width="24" height="24" viewBox="0 0 24 24">
+      <Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 5v14M5 12h14" />
+    </Svg>
+  );
+}
+
+
+// -----------------------------------------------------------
+// MIME → FileType lookup
+// -----------------------------------------------------------
+
+function mimeToFileType(mimeType: string | null | undefined): FileType {
+  if (!mimeType) return 'pdf';
+  if (mimeType.startsWith('image/')) return 'image';
+  if (mimeType === 'application/pdf') return 'pdf';
+  if (
+    mimeType === 'application/msword' ||
+    mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+    mimeType === 'text/plain'
+  ) {
+    return 'document';
+  }
+  return 'pdf';
+}
+
+function makeFileId(): string {
+  return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// -----------------------------------------------------------
+// Quick Action Picker Helpers
+// -----------------------------------------------------------
+
+async function pickGeneralFiles() {
+  return DocumentPicker.getDocumentAsync({
+    type: [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'image/png',
+      'image/jpeg',
+      'image/webp',
+      'image/heic',
+      'image/heif',
+    ],
+    copyToCacheDirectory: true,
+  });
+}
+
+async function pickImageFiles() {
+  return DocumentPicker.getDocumentAsync({
+    type: ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'],
+    copyToCacheDirectory: true,
+  });
+}
+
+async function pickWordFiles() {
+  return DocumentPicker.getDocumentAsync({
+    type: [
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ],
+    copyToCacheDirectory: true,
+  });
+}
+
+async function pickPDFFile() {
+  return DocumentPicker.getDocumentAsync({
+    type: 'application/pdf',
+    copyToCacheDirectory: true,
+  });
+}
+
+function FilterIcon() {
+  return (
+    <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <Path stroke="#9C9CA3" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 7h16M7 12h10M10 17h4" />
+    </Svg>
+  );
+}
+function NameIcon({ color }: { color: string }) {
+  return (
+    <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <Path stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7h12M3 12h10M3 17h8m6-10l4 4-4 4" />
+    </Svg>
+  );
+}
+
+function SizeIcon({ color }: { color: string }) {
+  return (
+    <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <Path stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm4 5h8m-8 4h5" />
+    </Svg>
+  );
+}
+
+function CalendarIcon({ color }: { color: string }) {
+  return (
+    <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <Path stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+    </Svg>
+  );
+}
+
+function ClockIcon({ color }: { color: string }) {
+  return (
+    <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <Path stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </Svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <Svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <Path stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M18 6L6 18M6 6l12 12" />
+    </Svg>
+  );
+}
+
+export function HugeiconsLayoutGrid(props: any) {
+  return (
+    <Svg width="20" height="20" viewBox="0 0 24 24">{/* Icon from Huge Icons by Hugeicons - undefined */}<G fill="none" stroke="#fff" strokeLinecap="round" strokeWidth="1.5"><Path strokeLinejoin="round" d="M20.109 3.891C21.5 5.282 21.5 7.521 21.5 12c0 4.478 0 6.718-1.391 8.109S16.479 21.5 12 21.5c-4.478 0-6.718 0-8.109-1.391S2.5 16.479 2.5 12c0-4.478 0-6.718 1.391-8.109S7.521 2.5 12 2.5c4.478 0 6.718 0 8.109 1.391" /><Path d="M21.5 12h-19M12 2.5v19" /></G></Svg>
+  )
+}
+
+export function HugeiconsMenu06(props: any) {
+  return (
+    <Svg width="20" height="20" viewBox="0 0 24 24">{/* Icon from Huge Icons by Hugeicons - undefined */}<Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 5h16M4 12h4m12 0h-9m-3 0l1.5 2l1.5-2m-3 0h3m-7 7h16" /></Svg>
+  )
+}
+
+export function HugeiconsFilter(props: any) {
+  return (
+    <Svg width="20" height="20" viewBox="0 0 24 24">{/* Icon from Huge Icons by Hugeicons - undefined */}<Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8.857 12.506C6.37 10.646 4.596 8.6 3.627 7.45c-.3-.356-.398-.617-.457-1.076c-.202-1.572-.303-2.358.158-2.866S4.604 3 6.234 3h11.532c1.63 0 2.445 0 2.906.507c.461.508.36 1.294.158 2.866c-.06.459-.158.72-.457 1.076c-.97 1.152-2.747 3.202-5.24 5.065a1.05 1.05 0 0 0-.402.747c-.247 2.731-.475 4.227-.617 4.983c-.229 1.222-1.96 1.957-2.888 2.612c-.552.39-1.222-.074-1.293-.678a196 196 0 0 1-.674-6.917a1.05 1.05 0 0 0-.402-.755" /></Svg>
+  )
+}
+
+// -----------------------------------------------------------
+// Main Screen
+// -----------------------------------------------------------
 
 export default function HomeScreen() {
   const router = useRouter();
   const files = useFilesStore((s) => s.files);
-  const recentFiles = useFilesStore((s) => s.recentFiles);
   const loadAll = useFilesStore((s) => s.loadAll);
+  const addFile = useFilesStore((s) => s.addFile);
+  const removeFile = useFilesStore((s) => s.removeFile);
 
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [displayMode, setDisplayMode] = useState<'list' | 'grid'>('list');
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
+  const [sortBy, setSortBy] = useState<'name' | 'size' | 'createdAt' | 'modifiedAt'>('modifiedAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [fileActionSheetVisible, setFileActionSheetVisible] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<DeviceFile | null>(null);
 
   useEffect(() => {
     loadAll();
@@ -177,6 +338,34 @@ export default function HomeScreen() {
     setRefreshing(true);
     await loadAll();
     setRefreshing(false);
+  };
+
+  // Shared handler: pick files and navigate to viewer
+  const handlePickAndNavigate = async (
+    pickerFn: () => Promise<DocumentPicker.DocumentPickerResult>,
+  ) => {
+    try {
+      const result = await pickerFn();
+      if (!result.canceled && result.assets?.[0]) {
+        const asset = result.assets[0];
+        const fileType = mimeToFileType(asset.mimeType);
+        const now = new Date().toISOString();
+        const newFile: DeviceFile = {
+          id: makeFileId(),
+          uri: asset.uri,
+          name: asset.name,
+          size: asset.size ?? 0,
+          fileType,
+          createdAt: now,
+          modifiedAt: now,
+          isFavorite: false,
+        };
+        await addFile(newFile);
+        router.push(`/file-viewer/${newFile.id}` as any);
+      }
+    } catch (err) {
+      console.error('File picker error:', err);
+    }
   };
 
   const filteredTools = TOOL_DEFINITIONS.filter((tool) => {
@@ -194,9 +383,31 @@ export default function HomeScreen() {
 
   const favoriteCount = files.filter((f) => f.isFavorite).length;
 
+  const sortedFiles = [...files]
+    .sort((a, b) => {
+      let cmp = 0;
+      switch (sortBy) {
+        case 'name':
+          cmp = a.name.localeCompare(b.name);
+          break;
+        case 'size':
+          cmp = a.size - b.size;
+          break;
+        case 'createdAt':
+          cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case 'modifiedAt':
+          cmp = new Date(a.modifiedAt).getTime() - new Date(b.modifiedAt).getTime();
+          break;
+      }
+      return sortOrder === 'asc' ? cmp : -cmp;
+    })
+    .slice(0, 10);
+
+  const importLabel = Platform.OS === 'ios' ? 'From iCloud' : 'Import from Device';
+
   return (
     <SafeAreaView className='flex-1 bg-[#0A0A0A]' edges={['top']}>
-      {/* <View className="bg-[#0A0A0A]"> */}
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -219,14 +430,14 @@ export default function HomeScreen() {
             </Text>
           </View>
           <View className="flex-row items-center gap-4">
-            <Pressable className="w-9 h-9 items-center justify-center">
-              <Svg width="28" height="28" viewBox="0 0 24 24"><Path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m17 17l4 4m-2-10a8 8 0 1 0-16 0a8 8 0 0 0 16 0"/></Svg>
-            </Pressable>
+            {/* <Pressable className="w-9 h-9 items-center justify-center">
+              <Svg width="28" height="28" viewBox="0 0 24 24"><Path fill="none" stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m17 17l4 4m-2-10a8 8 0 1 0-16 0a8 8 0 0 0 16 0" /></Svg>
+            </Pressable> */}
             <Pressable
               onPress={() => router.push('/settings')}
               className="w-10 h-10 rounded-full items-center justify-center "
             >
-              <Svg width="28" height="28" viewBox="0 0 24 24"><G fill="none" stroke="currentColor" strokeWidth="2"><Path d="M15.5 12a3.5 3.5 0 1 1-7 0a3.5 3.5 0 0 1 7 0Z"/><Path d="M20.79 9.152C21.598 10.542 22 11.237 22 12s-.403 1.458-1.21 2.848l-1.923 3.316c-.803 1.384-1.205 2.076-1.865 2.456s-1.462.38-3.065.38h-3.874c-1.603 0-2.405 0-3.065-.38s-1.062-1.072-1.865-2.456L3.21 14.848C2.403 13.458 2 12.763 2 12s.403-1.458 1.21-2.848l1.923-3.316C5.936 4.452 6.338 3.76 6.998 3.38S8.46 3 10.063 3h3.874c1.603 0 2.405 0 3.065.38s1.062 1.072 1.865 2.456z"/></G></Svg>
+              <HugeiconsMenu04 />
             </Pressable>
           </View>
         </View>
@@ -236,66 +447,133 @@ export default function HomeScreen() {
           <View style={{ gap: 12 }}>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <QuickActionCard
-                label="From iCloud"
-                onPress={() => { }}
+                label={importLabel}
+                onPress={() => handlePickAndNavigate(pickGeneralFiles)}
                 renderIcon={() => <FluentColorCloud16 />}
               />
               <QuickActionCard
                 label="Image to PDF"
-                onPress={() => router.push('/tool/image-to-pdf' as any)}
+                onPress={() => handlePickAndNavigate(pickImageFiles)}
                 renderIcon={() => <FluentImageColor16 />}
               />
             </View>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <QuickActionCard
                 label="PDF to Word"
-                onPress={() => { }}
+                onPress={() => handlePickAndNavigate(pickPDFFile)}
                 renderIcon={() => <FluentPdfToWord32 />}
               />
               <QuickActionCard
                 label="Word to PDF"
-                onPress={() => { }}
+                onPress={() => handlePickAndNavigate(pickWordFiles)}
                 renderIcon={() => <FluentWordToPdf28 />}
               />
             </View>
           </View>
         </View>
 
-   
         {/* Recent Files */}
         <View className="pb-7">
           <View className="px-6 flex-row items-center justify-between mb-4">
-            <Text className="text-base font-black text-white tracking-tight">
-              All
+            <Text className="text-base text-xl font-bold text-white tracking-tight">
+              Recent Files
             </Text>
-            {files.length > 5 && (
-              <Pressable onPress={() => router.push('/recents')}>
-                <Text className="text-[#FF3B30] font-bold text-xs">See All</Text>
+            <View className="flex-row items-center" style={{ gap: 4 }}>
+              {/* Display type toggle */}
+              {/*  <Pressable
+                onPress={() => setDisplayMode(displayMode === 'list' ? 'grid' : 'list')}
+                className="w-8 h-8 items-center justify-center"
+              >
+                {displayMode === 'list' ? <HugeiconsLayoutGrid /> : <HugeiconsMenu06 />}
+              </Pressable> */}
+              {/* Filter */}
+              <Pressable
+                onPress={() => setShowFilterSheet(true)}
+                className="w-8 h-8 items-center justify-center"
+              >
+                <HugeiconsFilter />
               </Pressable>
-            )}
+              {files.length > 8 && (
+                <Pressable onPress={() => router.push('/recents')} className="ml-1">
+                  <Text className="text-[#FF3B30] font-bold text-xs">See All</Text>
+                </Pressable>
+              )}
+            </View>
           </View>
 
-          {recentFiles.length === 0 ? (
-            <View className="mx-6 py-10 items-center bg-[#1C1C1E] border border-[#2C2C2E] rounded-3xl">
-              <HugeIcon name="recents" size={32} color={Palette.textMuted} />
-              <Text className="text-[#9C9CA3] mt-2 text-xs text-center font-bold">
-                No recent files yet. Import a PDF.
+          {files.length === 0 ? (
+            <Pressable
+              onPress={() => handlePickAndNavigate(pickGeneralFiles)}
+              className="mx-6 py-12 items-center active:opacity-80"
+            >
+              <Image source={require('@/assets/images/add-file.png')} style={{ width: 40, height: 40 }} />
+              <Text className="text-[#9C9CA3] mt-4 text-center font-bold">
+                No files yet. Tap to import.
               </Text>
-            </View>
+            </Pressable>
           ) : (
             <FlatList
-              horizontal
-              data={recentFiles.slice(0, 5)}
+              key={displayMode}
+              data={sortedFiles}
               keyExtractor={(item) => item.id}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 24, gap: 14 }}
-              renderItem={({ item }) => <RecentFileCard file={item} />}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
+              numColumns={displayMode === 'grid' ? 3 : 1}
+              columnWrapperStyle={displayMode === 'grid' ? { gap: 10 } : undefined}
+              contentContainerStyle={{ paddingHorizontal: 24, gap: 10 }}
+              renderItem={({ item }) => (
+                <FileCard
+                  file={item}
+                  displayMode={displayMode}
+                  onMenuPress={(f) => {
+                    setSelectedFile(f);
+                    setFileActionSheetVisible(true);
+                  }}
+                />
+              )}
             />
           )}
         </View>
+
+        {/* Filter Bottom Sheet */}
+        <FilterSheet
+          visible={showFilterSheet}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onApply={(by, order) => {
+            setSortBy(by);
+            setSortOrder(order);
+            setShowFilterSheet(false);
+          }}
+          onClose={() => setShowFilterSheet(false)}
+        />
+
+        {/* File Action Bottom Sheet */}
+        <FileActionSheet
+          visible={fileActionSheetVisible}
+          file={selectedFile}
+          onClose={() => setFileActionSheetVisible(false)}
+          onDelete={(fileId) => {
+            removeFile(fileId);
+            setFileActionSheetVisible(false);
+          }}
+        />
       </ScrollView>
 
-      {/* </View> */}
+      {/* Floating Action Button (FAB) */}
+      <Pressable
+        onPress={() => handlePickAndNavigate(pickGeneralFiles)}
+        className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-[#FF3B30] items-center justify-center shadow-lg active:opacity-85"
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 5,
+          elevation: 8,
+        }}
+      >
+        <HugeiconsPlus />
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -326,89 +604,158 @@ function QuickActionCard({
   );
 }
 
-function ActionIcon({
-  label,
-  iconName,
-  onPress,
+// --------------- Filter Bottom Sheet (Redesigned) ---------------
+function FilterSheet({
+  visible,
+  sortBy,
+  sortOrder,
+  onApply,
+  onClose,
 }: {
-  label: string;
-  iconName: string;
-  onPress: () => void;
+  visible: boolean;
+  sortBy: 'name' | 'size' | 'createdAt' | 'modifiedAt';
+  sortOrder: 'asc' | 'desc';
+  onApply: (by: 'name' | 'size' | 'createdAt' | 'modifiedAt', order: 'asc' | 'desc') => void;
+  onClose: () => void;
 }) {
-  return (
-    <Pressable onPress={onPress} className="items-center active:opacity-70" style={{ gap: 8 }}>
-      <View className="w-14 h-14 rounded-2xl bg-[#1C1C1E] border border-[#2C2C2E] items-center justify-center">
-        <HugeIcon name={iconName as any} size={22} color={Palette.text} />
-      </View>
-      <Text className="text-[11px] font-bold text-[#9C9CA3]">{label}</Text>
-    </Pressable>
-  );
-}
+  const [localSortBy, setLocalSortBy] = useState(sortBy);
+  const [localSortOrder, setLocalSortOrder] = useState(sortOrder);
 
-function StatBlock({ value, label }: { value: string; label: string }) {
-  return (
-    <View className="items-center flex-1">
-      <Text className="text-xl font-black text-[#FF3B30]">{value}</Text>
-      <Text className="text-[10px] font-bold text-[#9C9CA3] mt-1 text-center">
-        {label}
-      </Text>
-    </View>
-  );
-}
+  // Sync state when sheet is opened
+  useEffect(() => {
+    if (visible) {
+      setLocalSortBy(sortBy);
+      setLocalSortOrder(sortOrder);
+    }
+  }, [visible, sortBy, sortOrder]);
 
-function RecentFileCard({ file }: { file: PDFFile }) {
-  const toggleFav = useFilesStore((s) => s.toggleFavorite);
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  const sortOptions = [
+    { key: 'name', label: 'File Name', icon: NameIcon },
+    { key: 'size', label: 'File Size', icon: SizeIcon },
+    { key: 'createdAt', label: 'Date Created', icon: CalendarIcon },
+    { key: 'modifiedAt', label: 'Date Modified', icon: ClockIcon },
+  ] as const;
 
   return (
-    <View className="w-44 bg-[#1C1C1E] border border-[#2C2C2E] rounded-[28px] p-4">
-      <View className="w-full h-24 bg-[#0A0A0A] rounded-2xl items-center justify-center mb-3 relative overflow-hidden">
-        <View className="absolute top-0 left-0 right-0 h-[3px] bg-[#FF3B30]" />
-        <HugeIcon name="merge" size={24} color="#FFFFFF" />
-      </View>
-
-      <Text className="text-sm font-black text-white" numberOfLines={1}>
-        {file.name}
-      </Text>
-
-      <View className="flex-row items-center justify-between mt-2 pt-2 border-t border-[#2C2C2E]">
-        <Text className="text-[10px] font-bold text-[#9C9CA3]">
-          {formatSize(file.size)}
-        </Text>
-        <Pressable onPress={() => toggleFav(file.id)} className="p-1">
-          <HugeIcon
-            name="rate"
-            size={14}
-            color={file.isFavorite ? '#FF3B30' : Palette.textFaint}
-          />
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
-function ToolGridItem({ tool, onPress }: { tool: ToolDefinition; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-3xl p-5 active:opacity-80"
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      statusBarTranslucent
+      onRequestClose={onClose}
     >
-      <View className="w-12 h-12 bg-[#0A0A0A] rounded-2xl items-center justify-center mb-3">
-        <HugeIcon name={tool.icon || 'merge'} size={20} color="#FF3B30" />
+      <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+        <Pressable className="flex-1" onPress={onClose} />
+
+        <View className="!bg-[#2e2e2e] border-t border-[#2C2C2E] rounded-t-[32px] px-6 pb-12">
+          {/* Bottom Sheet Indicator Handle */}
+          <View className="items-center mb-6">
+            <View className="w-12 h-1 bg-[#2C2C2E] rounded-full" />
+          </View>
+
+          {/* Header row */}
+          {/*      <View className="flex-row items-center justify-between mb-6">
+            <Text className="text-xl font-bold text-white tracking-tight">
+              Sort & Filter
+            </Text>
+            <Pressable
+              onPress={onClose}
+              className="w-8 h-8 rounded-full bg-[#1C1C1E] items-center justify-center active:opacity-70"
+            >
+              <CloseIcon />
+            </Pressable>
+          </View> */}
+
+          {/* Section: Order */}
+          <View>
+            {([
+              { key: 'asc', label: 'Ascending' },
+              { key: 'desc', label: 'Descending' },
+            ] as const).map((opt) => {
+              const isSelected = localSortOrder === opt.key;
+              return (
+                <Pressable
+                  key={opt.key}
+                  onPress={() => setLocalSortOrder(opt.key)}
+                  className="flex-row items-center justify-between py-3"
+                >
+                  <Text
+                    className="text-xl font-semibold"
+                    style={{ color: isSelected ? '#FFFFFF' : '#9C9CA3' }}
+                  >
+                    {opt.label}
+                  </Text>
+                  {/* Checkmark Indicator */}
+                  {isSelected && (
+                    <Svg width="24" height="24" viewBox="0 0 24 24">
+                      <Path fill="none" stroke="#FF3B30" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="m5 14l3.5 3.5L19 6.5" />
+                    </Svg>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+
+
+          {/* Separator */}
+          <View className="bg-[#2C2C2E] h-px mb-6" />
+
+          {/* Section: Sort By */}
+          <View className="mb-6" style={{ gap: 8 }}>
+            {sortOptions.map((opt) => {
+              const isSelected = localSortBy === opt.key;
+              const Icon = opt.icon;
+              return (
+                <Pressable
+                  key={opt.key}
+                  onPress={() => setLocalSortBy(opt.key)}
+                  className="flex-row items-center justify-between py-2"
+                >
+                  <View className="flex-row items-center" style={{ gap: 12 }}>
+                    <Text
+                      className="text-xl font-semibold"
+                      style={{ color: isSelected ? '#FFFFFF' : '#9C9CA3' }}
+                    >
+                      {opt.label}
+                    </Text>
+                  </View>
+
+                  {/* Checkmark Indicator */}
+                  {isSelected && (
+                    <Svg width="24" height="24" viewBox="0 0 24 24">
+                      <Path fill="none" stroke="#FF3B30" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="m5 14l3.5 3.5L19 6.5" />
+                    </Svg>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+
+
+
+
+          {/* Actions Footer */}
+          <View className="flex-row items-center" style={{ gap: 12 }}>
+            <Pressable
+              onPress={() => {
+                setLocalSortBy('modifiedAt');
+                setLocalSortOrder('desc');
+              }}
+              className="flex-1 bg-[#1C1C1E] py-4 rounded-2xl items-center active:opacity-80 border border-[#2C2C2E]"
+            >
+              <Text className="text-[#9C9CA3] text-sm font-bold">Clear</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => onApply(localSortBy, localSortOrder)}
+              className="flex-[2] bg-[#FF3B30] py-4 rounded-2xl items-center active:opacity-85"
+            >
+              <Text className="text-white text-sm font-bold">Apply Filters</Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
-      <Text className="text-[10px] font-black uppercase text-[#FF3B30] tracking-wider mb-1">
-        {tool.category || 'Utility'}
-      </Text>
-      <Text className="text-base font-extrabold text-white mb-1">
-        {tool.name}
-      </Text>
-      <Text className="text-xs text-[#9C9CA3]" numberOfLines={2}>
-        {tool.description}
-      </Text>
-    </Pressable>
+    </Modal>
   );
 }
+

@@ -3,8 +3,8 @@
 // Uses expo-file-system and pdf-lib for all PDF processing
 // ============================================================
 
-import * as FileSystem from 'expo-file-system';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import * as FileSystem from 'expo-file-system/legacy';
+import { degrees, PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 // React Native polyfill for Buffer (needed by pdf-lib)
 import { Buffer } from 'buffer';
@@ -112,10 +112,285 @@ export async function rotatePDFPages(
   const doc = await loadPDF(uri);
   for (const { pageIndex, angle } of rotations) {
     const page = doc.getPage(pageIndex);
-    page.setRotation(angle);
+    page.setRotation(degrees(angle));
   }
   return savePDF(doc, `rotated_${Date.now()}`);
 }
+
+// -----------------------------------------------------------
+// Page adjustment types
+// -----------------------------------------------------------
+
+export interface PageAdjustments {
+  brightness: number;   // 0–200, default 100
+  contrast: number;     // 0–200, default 100
+  saturation: number;   // 0–200, default 100
+  grayscale: number;    // 0–100
+  invert: number;       // 0–100
+  sepia: number;        // 0–100
+  hueShift: number;     // 0–360
+}
+
+export const DEFAULT_ADJUSTMENTS: PageAdjustments = {
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  grayscale: 0,
+  invert: 0,
+  sepia: 0,
+  hueShift: 0,
+};
+
+function isDefaultAdjustment(adj: PageAdjustments): boolean {
+  return (
+    adj.brightness === 100 &&
+    adj.contrast === 100 &&
+    adj.saturation === 100 &&
+    adj.grayscale === 0 &&
+    adj.invert === 0 &&
+    adj.sepia === 0 &&
+    adj.hueShift === 0
+  );
+}
+
+// -----------------------------------------------------------
+// SVG feColorMatrix computation for CSS-filter replication
+// -----------------------------------------------------------
+
+/** Multiply two 5x4 colour matrices (20 values each, row-major). */
+function multiplyMatrices(a: number[], b: number[]): number[] {
+  const result = new Array<number>(20).fill(0);
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 5; col++) {
+      for (let k = 0; k < 5; k++) {
+        result[row * 5 + col] += a[row * 5 + k] * b[k * 5 + col];
+      }
+    }
+  }
+  return result;
+}
+
+/** Identity 5x4 colour matrix. */
+function identityMatrix(): number[] {
+  return [
+    1, 0, 0, 0, 0,
+    0, 1, 0, 0, 0,
+    0, 0, 1, 0, 0,
+    0, 0, 0, 1, 0,
+  ];
+}
+
+/** Brightness matrix (v: 0-200, normalised). */
+function brightnessMatrix(v: number): number[] {
+  const s = v / 100;
+  return [s, 0, 0, 0, 0, 0, s, 0, 0, 0, 0, 0, s, 0, 0, 0, 0, 0, 1, 0];
+}
+
+/** Contrast matrix (v: 0-200). */
+function contrastMatrix(v: number): number[] {
+  const s = v / 100;
+  const o = (1 - s) * 0.499; // midpoint offset
+  return [s, 0, 0, 0, o, 0, s, 0, 0, o, 0, 0, s, 0, o, 0, 0, 0, 1, 0];
+}
+
+/** Saturation matrix (v: 0-200). */
+function saturationMatrix(v: number): number[] {
+  const s = v / 100;
+  const lumR = 0.3086;
+  const lumG = 0.6094;
+  const lumB = 0.082;
+  const sr = (1 - s) * lumR;
+  const sg = (1 - s) * lumG;
+  const sb = (1 - s) * lumB;
+  return [
+    sr + s, sg, sb, 0, 0,
+    sr, sg + s, sb, 0, 0,
+    sr, sg, sb + s, 0, 0,
+    0, 0, 0, 1, 0,
+  ];
+}
+
+/** Grayscale matrix (v: 0-100). */
+function grayscaleMatrix(v: number): number[] {
+  const p = v / 100;
+  const lumR = 0.2126;
+  const lumG = 0.7152;
+  const lumB = 0.0722;
+  const r = (1 - p) + p * lumR;
+  const g = (1 - p) + p * lumG;
+  const b = (1 - p) + p * lumB;
+  return [
+    r, p * lumG, p * lumB, 0, 0,
+    p * lumR, g, p * lumB, 0, 0,
+    p * lumR, p * lumG, b, 0, 0,
+    0, 0, 0, 1, 0,
+  ];
+}
+
+/** Invert matrix (v: 0-100). */
+function invertMatrix(v: number): number[] {
+  const p = v / 100;
+  const s = 1 - 2 * p;
+  const o = p;
+  return [s, 0, 0, 0, o, 0, s, 0, 0, o, 0, 0, s, 0, o, 0, 0, 0, 1, 0];
+}
+
+/** Sepia matrix (v: 0-100). */
+function sepiaMatrix(v: number): number[] {
+  const p = v / 100;
+  return [
+    0.393 + 0.607 * (1 - p), 0.769 - 0.769 * (1 - p), 0.189 - 0.189 * (1 - p), 0, 0,
+    0.349 - 0.349 * (1 - p), 0.686 + 0.314 * (1 - p), 0.168 - 0.168 * (1 - p), 0, 0,
+    0.272 - 0.272 * (1 - p), 0.534 - 0.534 * (1 - p), 0.131 + 0.869 * (1 - p), 0, 0,
+    0, 0, 0, 1, 0,
+  ];
+}
+
+/** Hue-rotate matrix (v: 0-360). */
+function hueRotateMatrix(v: number): number[] {
+  const a = (v * Math.PI) / 180;
+  const cos = Math.cos(a);
+  const sin = Math.sin(a);
+  const lumR = 0.213;
+  const lumG = 0.715;
+  const lumB = 0.072;
+  return [
+    lumR + cos * (1 - lumR) + sin * -lumR,
+    lumG + cos * -lumG + sin * -lumG,
+    lumB + cos * -lumB + sin * (1 - lumB), 0, 0,
+    lumR + cos * -lumR + sin * 0.143,
+    lumG + cos * (1 - lumG) + sin * 0.140,
+    lumB + cos * -lumB + sin * -0.283, 0, 0,
+    lumR + cos * -lumR + sin * -(1 - lumR),
+    lumG + cos * -lumG + sin * lumG,
+    lumB + cos * (1 - lumB) + sin * lumB, 0, 0,
+    0, 0, 0, 1, 0,
+  ];
+}
+
+/**
+ * Build a combined SVG feColorMatrix values string from page adjustments.
+ * Applies filters in CSS order: brightness → contrast → saturate → grayscale
+ * → invert → sepia → hue-rotate.
+ *
+ * Returns a space-separated string of 20 numbers for direct use in
+ * `<feColorMatrix type="matrix" values="..." />`.
+ */
+export function getFilterColorMatrix(adj: PageAdjustments): string {
+  let matrix = identityMatrix();
+
+  if (adj.brightness !== 100) {
+    matrix = multiplyMatrices(matrix, brightnessMatrix(adj.brightness));
+  }
+  if (adj.contrast !== 100) {
+    matrix = multiplyMatrices(matrix, contrastMatrix(adj.contrast));
+  }
+  if (adj.saturation !== 100) {
+    matrix = multiplyMatrices(matrix, saturationMatrix(adj.saturation));
+  }
+  if (adj.grayscale > 0) {
+    matrix = multiplyMatrices(matrix, grayscaleMatrix(adj.grayscale));
+  }
+  if (adj.invert > 0) {
+    matrix = multiplyMatrices(matrix, invertMatrix(adj.invert));
+  }
+  if (adj.sepia > 0) {
+    matrix = multiplyMatrices(matrix, sepiaMatrix(adj.sepia));
+  }
+  if (adj.hueShift !== 0) {
+    matrix = multiplyMatrices(matrix, hueRotateMatrix(adj.hueShift));
+  }
+
+  return matrix.join(' ');
+}
+
+/**
+ * Bake per-page colour adjustments permanently into a PDF.
+ * Uses the same overlay-rectangle maths as the React Native visual preview
+ * so the saved result exactly matches what the user saw.
+ *
+ * @param uri              Source PDF file URI
+ * @param allAdjustments   Map of 1-based page numbers → adjustments
+ */
+export async function applyAdjustmentsToPDF(
+  uri: string,
+  allAdjustments: Record<number, PageAdjustments>,
+): Promise<string> {
+  const doc = await loadPDF(uri);
+  const pages = doc.getPages();
+
+  for (let i = 0; i < pages.length; i++) {
+    const pageNum = i + 1; // 1-based
+    const adj = allAdjustments[pageNum];
+
+    // Skip pages with no adjustments or only default values
+    if (!adj || isDefaultAdjustment(adj)) continue;
+
+    const page = pages[i];
+    const { width, height } = page.getSize();
+
+    const drawOverlay = (r: number, g: number, b: number, opacity: number) => {
+      if (opacity <= 0) return;
+      page.drawRectangle({
+        x: 0,
+        y: 0,
+        width,
+        height,
+        color: rgb(r, g, b),
+        opacity: Math.min(1, Math.max(0, opacity)),
+      });
+    };
+
+    // ---- Sepia tint ----
+    if (adj.sepia > 0) {
+      drawOverlay(0.933, 0.855, 0.635, (adj.sepia / 100) * 0.25);
+    }
+
+    // ---- Grayscale / mono tint ----
+    if (adj.grayscale > 0) {
+      drawOverlay(0.498, 0.498, 0.498, (adj.grayscale / 100) * 0.30);
+    }
+
+    // ---- Desaturation tint (only when grayscale is off) ----
+    if (adj.saturation < 100 && adj.grayscale === 0) {
+      const desat = 100 - adj.saturation;
+      drawOverlay(0.498, 0.498, 0.498, (desat / 100) * 0.20);
+    }
+
+    // ---- Contrast ----
+    if (adj.contrast !== 100) {
+      const diff = adj.contrast - 100;
+      if (diff < 0) {
+        drawOverlay(0.502, 0.502, 0.502, (Math.abs(diff) / 100) * 0.25);
+      } else {
+        drawOverlay(0, 0, 0, (diff / 100) * 0.05);
+      }
+    }
+
+    // ---- Brightness ----
+    if (adj.brightness !== 100) {
+      const difference = adj.brightness - 100;
+      if (difference < 0) {
+        drawOverlay(0, 0, 0, Math.min(0.9, Math.abs(difference) / 100));
+      } else {
+        drawOverlay(1, 1, 1, Math.min(0.5, (difference / 100) * 0.3));
+      }
+    }
+
+    // ---- Invert (white tint simulation) ----
+    if (adj.invert > 0) {
+      drawOverlay(1, 1, 1, (adj.invert / 100) * 0.50);
+    }
+
+    // ---- Blueprint / Hue tint ----
+    if (adj.hueShift > 150) {
+      drawOverlay(0, 0.18, 0.478, 0.35);
+    }
+  }
+
+  return savePDF(doc, `adjusted_${Date.now()}`);
+}
+
 
 // -----------------------------------------------------------
 // Reorder pages
@@ -126,15 +401,13 @@ export async function reorderPages(
   newOrder: number[],
 ): Promise<string> {
   const doc = await loadPDF(uri);
-  const pages = newOrder.map((i) => {
-    const page = doc.getPage(i);
-    doc.removePage(i);
-    return page;
-  });
-  // Clear remaining and re-add in order
+  // Collect page references in desired order BEFORE removing (avoids index shift)
+  const pages = newOrder.map((i) => doc.getPage(i));
+  // Remove all pages
   while (doc.getPageCount() > 0) {
     doc.removePage(0);
   }
+  // Re-add in new order
   pages.forEach((p) => doc.addPage(p));
   return savePDF(doc, `reordered_${Date.now()}`);
 }

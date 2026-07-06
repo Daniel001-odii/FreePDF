@@ -4,29 +4,31 @@
 
 import { getDatabase } from '@/src/db/database';
 import type {
-    OperationHistory,
-    OperationStatus,
-    PDFFile,
-    ThemeMode,
-    UserSettings,
+  DeviceFile,
+  FileType,
+  OperationHistory,
+  OperationStatus,
+  ThemeMode,
+  UserSettings,
 } from '@/src/types';
 
 // -----------------------------------------------------------
-// PDF Files
+// Files
 // -----------------------------------------------------------
 
-export async function insertPDFFile(file: PDFFile): Promise<void> {
+export async function insertFile(file: DeviceFile): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
     `INSERT OR REPLACE INTO pdf_files
-       (id, uri, name, size, page_count, created_at, modified_at, is_favorite, thumbnail)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (id, uri, name, size, file_type, page_count, created_at, modified_at, is_favorite, thumbnail)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       file.id,
       file.uri,
       file.name,
       file.size,
-      file.pageCount,
+      file.fileType,
+      file.pageCount ?? 0,
       file.createdAt,
       file.modifiedAt,
       file.isFavorite ? 1 : 0,
@@ -35,13 +37,17 @@ export async function insertPDFFile(file: PDFFile): Promise<void> {
   );
 }
 
-export async function getAllPDFFiles(): Promise<PDFFile[]> {
+/** @deprecated Use insertFile instead */
+export const insertPDFFile = insertFile;
+
+export async function getAllFiles(): Promise<DeviceFile[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<{
     id: string;
     uri: string;
     name: string;
     size: number;
+    file_type: string;
     page_count: number;
     created_at: string;
     modified_at: string;
@@ -50,29 +56,68 @@ export async function getAllPDFFiles(): Promise<PDFFile[]> {
   }>(
     `SELECT * FROM pdf_files ORDER BY modified_at DESC`,
   );
-  return rows.map(mapRowToPDFFile);
+  return rows.map(mapRowToDeviceFile);
 }
 
-export async function getPDFFileById(id: string): Promise<PDFFile | null> {
+/** @deprecated Use getAllFiles instead */
+export const getAllPDFFiles = getAllFiles;
+
+export async function getFileById(id: string): Promise<DeviceFile | null> {
   const db = await getDatabase();
   const row = await db.getFirstAsync<{
     id: string;
     uri: string;
     name: string;
     size: number;
+    file_type: string;
     page_count: number;
     created_at: string;
     modified_at: string;
     is_favorite: number;
     thumbnail: string | null;
   }>(`SELECT * FROM pdf_files WHERE id = ?`, [id]);
-  return row ? mapRowToPDFFile(row) : null;
+  return row ? mapRowToDeviceFile(row) : null;
 }
 
-export async function deletePDFFile(id: string): Promise<void> {
+/** @deprecated Use getFileById instead */
+export const getPDFFileById = getFileById;
+
+export async function renameFile(id: string, newName: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    `UPDATE pdf_files
+        SET name = ?,
+            modified_at = datetime('now')
+      WHERE id = ?`,
+    [newName, id],
+  );
+}
+
+export async function deleteFile(id: string): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(`DELETE FROM pdf_files WHERE id = ?`, [id]);
 }
+
+/** Update the stored URI and size of a file (e.g. after baking edits). */
+export async function updateFileUri(
+  id: string,
+  newUri: string,
+  newSize: number,
+): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    `UPDATE pdf_files
+        SET uri = ?,
+            size = ?,
+            modified_at = datetime('now')
+      WHERE id = ?`,
+    [newUri, newSize, id],
+  );
+}
+
+
+/** @deprecated Use deleteFile instead */
+export const deletePDFFile = deleteFile;
 
 export async function toggleFavorite(id: string): Promise<void> {
   const db = await getDatabase();
@@ -85,29 +130,34 @@ export async function toggleFavorite(id: string): Promise<void> {
   );
 }
 
-export async function getFavoriteFiles(): Promise<PDFFile[]> {
+/** @deprecated Use toggleFavorite instead */
+export const toggleDBFavorite = toggleFavorite;
+
+export async function getFavoriteFiles(): Promise<DeviceFile[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<{
     id: string;
     uri: string;
     name: string;
     size: number;
+    file_type: string;
     page_count: number;
     created_at: string;
     modified_at: string;
     is_favorite: number;
     thumbnail: string | null;
   }>(`SELECT * FROM pdf_files WHERE is_favorite = 1 ORDER BY modified_at DESC`);
-  return rows.map(mapRowToPDFFile);
+  return rows.map(mapRowToDeviceFile);
 }
 
-export async function getRecentFiles(limit: number = 10): Promise<PDFFile[]> {
+export async function getRecentFiles(limit: number = 10): Promise<DeviceFile[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<{
     id: string;
     uri: string;
     name: string;
     size: number;
+    file_type: string;
     page_count: number;
     created_at: string;
     modified_at: string;
@@ -117,7 +167,7 @@ export async function getRecentFiles(limit: number = 10): Promise<PDFFile[]> {
     `SELECT * FROM pdf_files ORDER BY modified_at DESC LIMIT ?`,
     [limit],
   );
-  return rows.map(mapRowToPDFFile);
+  return rows.map(mapRowToDeviceFile);
 }
 
 // -----------------------------------------------------------
@@ -284,22 +334,24 @@ export async function removeFavoriteTool(toolId: string): Promise<void> {
 // Helpers
 // -----------------------------------------------------------
 
-function mapRowToPDFFile(row: {
+function mapRowToDeviceFile(row: {
   id: string;
   uri: string;
   name: string;
   size: number;
+  file_type: string;
   page_count: number;
   created_at: string;
   modified_at: string;
   is_favorite: number;
   thumbnail: string | null;
-}): PDFFile {
+}): DeviceFile {
   return {
     id: row.id,
     uri: row.uri,
     name: row.name,
     size: row.size,
+    fileType: (row.file_type as FileType) || 'pdf',
     pageCount: row.page_count,
     createdAt: row.created_at,
     modifiedAt: row.modified_at,

@@ -1,9 +1,26 @@
 import { ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ScrollView, Switch, Text, View } from 'react-native';
+import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
 import { Palette } from '@/constants/Colors';
 import { useSettingsStore } from '@/src/stores/settingsStore';
+
+
+
+import { router } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
+
+export function HugeiconsArrowLeft01(props: any) {
+  return (
+    <Svg width="28" height="28" viewBox="0 0 24 24">{/* Icon from Huge Icons by Hugeicons - undefined */}<Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 6s-6 4.419-6 6s6 6 6 6" /></Svg>
+  )
+}
+
+export function HugeiconsShare03(props: any) {
+  return (
+    <Svg width="28" height="28" viewBox="0 0 24 24">{/* Icon from Huge Icons by Hugeicons - undefined */}<Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 7s2.196-2.716 3.404-3.761a.9.9 0 0 1 .63-.238a.92.92 0 0 1 .562.238C13.804 4.284 16 7 16 7m-3.966-3v11M8 11c-1.4 0-2.1 0-2.635.273a2.5 2.5 0 0 0-1.093 1.092C4 12.9 4 13.6 4 15v1c0 2.357 0 3.535.732 4.268S6.643 21 9 21h6c2.357 0 3.535 0 4.268-.732C20 19.535 20 18.357 20 16v-1c0-1.4 0-2.1-.273-2.635a2.5 2.5 0 0 0-1.092-1.092C18.1 11 17.4 11 16 11" /></Svg>
+  )
+}
 
 export default function SettingsScreen() {
   const theme = useSettingsStore((s) => s.theme);
@@ -21,16 +38,20 @@ export default function SettingsScreen() {
       contentContainerStyle={{ paddingBottom: 40, paddingTop: 90, }}
     >
       {/* Header */}
-      <View className="px-6 pb-4">
-        <Text className="text-3xl font-black text-white tracking-tight" style={{
-              fontFamily: "RocaTwoBold"
-            }}>
-          Settings
-        </Text>
+      <View className="px-6 pb-4 flex flex-row">
+        <Pressable className="flex flex-row gap-3" onPress={() => router.back()}>
+          <HugeiconsArrowLeft01 />
+          <Text className="text-3xl font-black text-white" style={{
+            fontFamily: "RocaTwoBold"
+          }}>
+            Settings
+          </Text>
+        </Pressable>
+
       </View>
 
       {/* Premium Banner */}
-     {/*  <View className="px-6 pb-6">
+      {/*  <View className="px-6 pb-6">
         <View className="bg-[#FF3B30] rounded-3xl p-5 overflow-hidden">
           <Text className="text-white/80 font-bold text-xs uppercase tracking-wider">
             Limited Time Offer
@@ -204,11 +225,10 @@ function PressableButton({
     <View>
       <Text
         onPress={onPress}
-        className={`px-3 py-1.5 rounded-lg text-sm font-bold overflow-hidden ${
-          active
-            ? 'bg-[#FF3B30] text-white'
-            : 'bg-[#0A0A0A] text-[#9C9CA3]'
-        }`}
+        className={`px-3 py-1.5 rounded-lg text-sm font-bold overflow-hidden ${active
+          ? 'bg-[#FF3B30] text-white'
+          : 'bg-[#0A0A0A] text-[#9C9CA3]'
+          }`}
       >
         {label}
       </Text>

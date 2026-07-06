@@ -5,18 +5,25 @@
 /** Supported theme modes */
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-/** PDF file reference stored in the app */
-export interface PDFFile {
+/** Supported file types on the device */
+export type FileType = 'pdf' | 'document' | 'image';
+
+/** File reference stored in the app */
+export interface DeviceFile {
   id: string;
   uri: string;
   name: string;
   size: number;          // bytes
-  pageCount: number;
+  fileType: FileType;
+  pageCount?: number;    // only for PDFs
   createdAt: string;     // ISO 8601
   modifiedAt: string;    // ISO 8601
   isFavorite: boolean;
   thumbnail?: string;    // base64 or file URI
 }
+
+/** @deprecated Use DeviceFile instead */
+export type PDFFile = DeviceFile;
 
 /** Tool category enumeration */
 export type ToolCategory =
@@ -40,7 +47,7 @@ export interface OperationHistory {
   id: string;
   toolId: string;
   toolName: string;
-  inputFiles: string[];  // PDFFile ids
+  inputFiles: string[];  // DeviceFile ids
   outputFile?: string;   // resulting file URI
   status: OperationStatus;
   startedAt: string;
