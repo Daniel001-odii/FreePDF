@@ -1,0 +1,13 @@
+const baseConfig = require('./app.json')
+
+module.exports = {
+  ...baseConfig,
+  expo: {
+    ...baseConfig.expo,
+    extra: {
+      ...baseConfig.expo.extra,
+      posthogProjectToken: process.env.POSTHOG_PROJECT_TOKEN,
+      posthogHost: process.env.POSTHOG_HOST || 'https://us.i.posthog.com',
+    },
+  },
+}

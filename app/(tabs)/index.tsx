@@ -23,6 +23,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, G, LinearGradient, Path, RadialGradient, Stop, SvgProps } from 'react-native-svg';
+import { usePostHog } from 'posthog-react-native';
 
 function chunkArray<T>(arr: T[], size: number): T[][] {
   const result: T[][] = [];
@@ -317,6 +318,7 @@ export function HugeiconsFilter(props: any) {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const posthog = usePostHog();
   const files = useFilesStore((s) => s.files);
   const loadAll = useFilesStore((s) => s.loadAll);
   const addFile = useFilesStore((s) => s.addFile);
@@ -363,6 +365,11 @@ export default function HomeScreen() {
           isFavorite: false,
         };
         await addFile(newFile);
+        posthog.capture('file_imported', {
+          file_type: fileType,
+          file_size: asset.size ?? 0,
+          mime_type: asset.mimeType ?? 'unknown',
+        });
         router.push(`/file-viewer/${newFile.id}` as any);
       }
     } catch (err) {
@@ -479,24 +486,36 @@ export default function HomeScreen() {
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <QuickActionCard
                 label={importLabel}
-                onPress={() => handlePickAndNavigate(pickGeneralFiles)}
+                onPress={() => {
+                  posthog.capture('quick_action_tapped', { action: 'import_file' });
+                  handlePickAndNavigate(pickGeneralFiles);
+                }}
                 renderIcon={() => <FluentColorCloud16 />}
               />
               <QuickActionCard
                 label="Image to PDF"
-                onPress={handleImageToPDFPick}
+                onPress={() => {
+                  posthog.capture('quick_action_tapped', { action: 'image_to_pdf' });
+                  handleImageToPDFPick();
+                }}
                 renderIcon={() => <FluentImageColor16 />}
               />
             </View>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <QuickActionCard
                 label="PDF to Word"
-                onPress={() => handlePickAndNavigate(pickPDFFile)}
+                onPress={() => {
+                  posthog.capture('quick_action_tapped', { action: 'pdf_to_word' });
+                  handlePickAndNavigate(pickPDFFile);
+                }}
                 renderIcon={() => <FluentPdfToWord32 />}
               />
               <QuickActionCard
                 label="Word to PDF"
-                onPress={() => handlePickAndNavigate(pickWordFiles)}
+                onPress={() => {
+                  posthog.capture('quick_action_tapped', { action: 'word_to_pdf' });
+                  handlePickAndNavigate(pickWordFiles);
+                }}
                 renderIcon={() => <FluentWordToPdf28 />}
               />
             </View>
@@ -585,6 +604,9 @@ export default function HomeScreen() {
           file={selectedFile}
           onClose={() => setFileActionSheetVisible(false)}
           onDelete={(fileId) => {
+            posthog.capture('file_deleted', {
+              file_type: selectedFile?.fileType ?? 'unknown',
+            });
             removeFile(fileId);
             setFileActionSheetVisible(false);
           }}

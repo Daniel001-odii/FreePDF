@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { usePostHog } from 'posthog-react-native';
 import {
   Pressable,
   ScrollView,
@@ -25,6 +26,7 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
 
 export default function ToolsScreen() {
   const router = useRouter();
+  const posthog = usePostHog();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<ToolCategory | 'all'>('all');
 
@@ -135,7 +137,14 @@ export default function ToolsScreen() {
                       <View key={tool.id} style={{ flex: 1 }}>
                         <ToolGridItem
                           tool={tool}
-                          onPress={() => (router as any).push(tool.route)}
+                          onPress={() => {
+                            posthog.capture('tool_selected', {
+                              tool_id: tool.id,
+                              tool_name: tool.name,
+                              tool_category: tool.category,
+                            });
+                            (router as any).push(tool.route);
+                          }}
                         />
                       </View>
                     ))}
