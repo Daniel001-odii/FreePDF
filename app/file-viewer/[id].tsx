@@ -22,6 +22,7 @@ import { useFilesStore } from '@/src/stores/filesStore';
 import { applyAdjustmentsToPDF, applyAdjustmentsToImage, loadPreviewPixels, generateFilteredPreview } from '@/src/services/pdfAdjustmentService';
 import type { PreviewPixelData } from '@/src/services/pdfAdjustmentService';
 import type { DeviceFile } from '@/src/types';
+import { usePostHog } from 'posthog-react-native';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 import RNBlobUtil from 'react-native-blob-util';
 import * as Sharing from 'expo-sharing';
@@ -788,6 +789,7 @@ function AdjustPreview({
 export default function FileViewerScreen() {
     const router = useRouter();
     const navigation = useNavigation();
+    const posthog = usePostHog();
     const insets = useSafeAreaInsets();
     const { id } = useGlobalSearchParams<{ id: string }>();
     const [file, setFile] = useState<DeviceFile | null>(null);
@@ -1169,6 +1171,10 @@ export default function FileViewerScreen() {
         if (file?.uri) {
             try {
                 await Sharing.shareAsync(file.uri);
+                posthog.capture('file_shared', {
+                    file_type: file.fileType,
+                    file_size: file.size,
+                });
             } catch {
                 Alert.alert('Error', 'Could not share this file.');
             }
@@ -1343,6 +1349,12 @@ export default function FileViewerScreen() {
                 console.warn('Store refresh failed:', storeErr);
             }
 
+            posthog.capture('pdf_edited_saved', {
+                file_type: file.fileType,
+                has_signature: Boolean(activeSignature),
+                has_text_overlay: Boolean(activeText),
+                adjusted_pages: Object.keys(allPagesAdjustments).length,
+            });
             const typeLabel = file.fileType === 'image' ? 'Image' : 'PDF';
             Alert.alert('Saved', `${typeLabel} updated successfully.`);
             setIsAdjusting(false);

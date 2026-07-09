@@ -20,6 +20,7 @@ import { compressPDF } from '@/src/services/pdfService';
 import { useFilesStore } from '@/src/stores/filesStore';
 import { useSettingsStore } from '@/src/stores/settingsStore';
 import type { DeviceFile } from '@/src/types';
+import { usePostHog } from 'posthog-react-native';
 
 // Custom Arrow Left Icon
 function HugeiconsArrowLeft01() {
@@ -54,6 +55,7 @@ function CompressIcon() {
 
 export default function CompressPDFScreen() {
   const router = useRouter();
+  const posthog = usePostHog();
   const [file, setFile] = useState<{ name: string; uri: string; size?: number } | null>(null);
   const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -86,6 +88,11 @@ export default function CompressPDFScreen() {
     try {
       const uri = await compressPDF(file.uri);
       setOutputUri(uri);
+      const compressedInfo = await FileSystem.getInfoAsync(uri);
+      posthog.capture('pdf_compressed', {
+        original_size: file.size ?? 0,
+        compressed_size: (compressedInfo as any).size ?? 0,
+      });
 
       // Auto-save results to files list
       const autoSave = useSettingsStore.getState().autoSaveResults;

@@ -20,6 +20,7 @@ import { mergePDFs } from '@/src/services/pdfService';
 import { useFilesStore } from '@/src/stores/filesStore';
 import { useSettingsStore } from '@/src/stores/settingsStore';
 import type { DeviceFile } from '@/src/types';
+import { usePostHog } from 'posthog-react-native';
 
 // Custom Arrow Left Icon
 function HugeiconsArrowLeft01() {
@@ -69,6 +70,7 @@ function TrashIcon() {
 
 export default function MergePDFScreen() {
   const router = useRouter();
+  const posthog = usePostHog();
   const [files, setFiles] = useState<{ name: string; uri: string }[]>([]);
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
   const [processing, setProcessing] = useState(false);
@@ -111,6 +113,9 @@ export default function MergePDFScreen() {
     try {
       const uri = await mergePDFs(files.map((f) => f.uri));
       setOutputUri(uri);
+      posthog.capture('pdf_merged', {
+        file_count: files.length,
+      });
 
       // Auto-save results to files list
       const autoSave = useSettingsStore.getState().autoSaveResults;

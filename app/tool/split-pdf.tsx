@@ -21,6 +21,7 @@ import { splitPDF, getPageCount } from '@/src/services/pdfService';
 import { useFilesStore } from '@/src/stores/filesStore';
 import { useSettingsStore } from '@/src/stores/settingsStore';
 import type { DeviceFile } from '@/src/types';
+import { usePostHog } from 'posthog-react-native';
 
 // Custom Arrow Left Icon
 function HugeiconsArrowLeft01() {
@@ -69,6 +70,7 @@ function ShareIcon() {
 
 export default function SplitPDFScreen() {
   const router = useRouter();
+  const posthog = usePostHog();
   const [file, setFile] = useState<{ name: string; uri: string; size?: number } | null>(null);
   const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
   const [pageCount, setPageCount] = useState<number>(0);
@@ -163,6 +165,10 @@ export default function SplitPDFScreen() {
     try {
       const uris = await splitPDF(file.uri, targetRanges);
       setOutputUris(uris);
+      posthog.capture('pdf_split', {
+        total_pages: pageCount,
+        output_parts: uris.length,
+      });
 
       // Auto-save results to files list
       const autoSave = useSettingsStore.getState().autoSaveResults;

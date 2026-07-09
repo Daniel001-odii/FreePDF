@@ -26,6 +26,7 @@ import { useFilesStore } from '@/src/stores/filesStore';
 import { useSettingsStore } from '@/src/stores/settingsStore';
 import { savePDF } from '@/src/services/pdfService';
 import type { DeviceFile } from '@/src/types';
+import { usePostHog } from 'posthog-react-native';
 import Svg, { Path } from 'react-native-svg';
 import {
     Gesture,
@@ -259,6 +260,7 @@ function DraggableImageCell({
 
 export default function ImagesToPDFScreen() {
   const router = useRouter();
+  const posthog = usePostHog();
   const params = useLocalSearchParams<{ images?: string }>();
   const addFile = useFilesStore((s) => s.addFile);
 
@@ -483,6 +485,10 @@ export default function ImagesToPDFScreen() {
       };
 
       await addFile(newFile);
+      posthog.capture('images_converted_to_pdf', {
+        image_count: imageItems.length,
+        file_size: size,
+      });
 
       setConverting(false);
       router.push(`/file-viewer/${newFile.id}` as any);
