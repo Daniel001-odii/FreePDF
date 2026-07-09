@@ -1835,6 +1835,15 @@ export default function FileViewerScreen() {
                                             Alert.alert('Already PDF', 'This file is already a PDF.');
                                             return;
                                         }
+                                        if (file?.fileType === 'image') {
+                                            router.push({
+                                                pathname: '/tool/images-to-pdf',
+                                                params: {
+                                                    images: JSON.stringify([file.uri])
+                                                }
+                                            } as any);
+                                            return;
+                                        }
                                         Alert.alert('Coming Soon', 'Convert to PDF feature is coming soon.');
                                     }}
                                     className="flex-1 py-3 items-center active:opacity-80"

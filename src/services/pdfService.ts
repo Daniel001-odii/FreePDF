@@ -498,3 +498,103 @@ export async function getPageCount(uri: string): Promise<number> {
   const doc = await loadPDF(uri);
   return doc.getPageCount();
 }
+
+// -----------------------------------------------------------
+// Update PDF metadata
+// -----------------------------------------------------------
+
+export async function updatePDFMetadata(
+  uri: string,
+  metadata: {
+    title: string;
+    author: string;
+    subject: string;
+    creator: string;
+    producer: string;
+  },
+): Promise<string> {
+  const doc = await loadPDF(uri);
+  doc.setTitle(metadata.title);
+  doc.setAuthor(metadata.author);
+  doc.setSubject(metadata.subject);
+  doc.setCreator(metadata.creator);
+  doc.setProducer(metadata.producer);
+  return savePDF(doc, `metadata_${Date.now()}`);
+}
+
+// -----------------------------------------------------------
+// Add custom text to a specific page
+// -----------------------------------------------------------
+
+export async function addTextToPDF(
+  uri: string,
+  text: string,
+  options: {
+    pageIndex: number;
+    x: number;
+    y: number;
+    fontSize?: number;
+    color?: { r: number; g: number; b: number };
+  },
+): Promise<string> {
+  const doc = await loadPDF(uri);
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const pages = doc.getPages();
+  if (options.pageIndex < 0 || options.pageIndex >= pages.length) {
+    throw new Error('Invalid page index');
+  }
+  const page = pages[options.pageIndex];
+  const fs = options.fontSize ?? 18;
+  const color = options.color ?? { r: 0, g: 0, b: 0 };
+
+  page.drawText(text, {
+    x: options.x,
+    y: options.y,
+    size: fs,
+    font,
+    color: rgb(color.r, color.g, color.b),
+  });
+
+  return savePDF(doc, `annotated_${Date.now()}`);
+}
+
+// -----------------------------------------------------------
+// Add image to a specific page
+// -----------------------------------------------------------
+
+export async function addImageToPDF(
+  pdfUri: string,
+  imageUri: string,
+  options: {
+    pageIndex: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  },
+): Promise<string> {
+  const doc = await loadPDF(pdfUri);
+  const pages = doc.getPages();
+  if (options.pageIndex < 0 || options.pageIndex >= pages.length) {
+    throw new Error('Invalid page index');
+  }
+  const page = pages[options.pageIndex];
+
+  // Read the image as base64
+  const base64 = await FileSystem.readAsStringAsync(imageUri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  const imageBytes = Uint8Array.from(Buffer.from(base64, 'base64'));
+
+  // Embed image (JPEG)
+  const pdfImage = await doc.embedJpg(imageBytes);
+
+  page.drawImage(pdfImage, {
+    x: options.x,
+    y: options.y,
+    width: options.width,
+    height: options.height,
+  });
+
+  return savePDF(doc, `with_image_${Date.now()}`);
+}

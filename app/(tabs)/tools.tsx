@@ -202,7 +202,7 @@ function ToolGridItem({ tool, onPress, children }: { tool: ToolDefinition; onPre
       }}
       className="bg-[#1C1C1E] rounded-2xl items-center active:opacity-80 p-5 justify-center items-center"
     >
-      {children || <HugeIcon name={tool.icon || 'merge'} size={30} color="#fff" />}
+      {children || <HugeIcon name={tool.icon || 'merge'} size={30} color={tool.isActive ? '#FF3B30' : '#ffffff'} />}
       <Text
         className="text-white text-xs text-center p-2"
         numberOfLines={2}

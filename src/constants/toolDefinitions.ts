@@ -42,6 +42,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'merge',
     route: '/tool/merge-pdf',
     description: 'Combine multiple PDF files into a single document',
+    isActive: true,
   },
   {
     id: 'split-pdf',
@@ -50,6 +51,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'split',
     route: '/tool/split-pdf',
     description: 'Extract pages or split a PDF into multiple files',
+    isActive: true,
   },
   {
     id: 'compress-pdf',
@@ -58,6 +60,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'compress',
     route: '/tool/compress-pdf',
     description: 'Reduce file size while maintaining quality',
+    isActive: true,
   },
   {
     id: 'rotate-pdf',
@@ -66,6 +69,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'rotate',
     route: '/tool/rotate-pdf',
     description: 'Rotate pages in your PDF document',
+    isActive: true,
   },
   {
     id: 'reorder-pages',
@@ -74,6 +78,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'reorder',
     route: '/tool/reorder-pages',
     description: 'Drag and drop to rearrange PDF pages',
+    isActive: true,
   },
   {
     id: 'extract-pages',
@@ -82,6 +87,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'extract',
     route: '/tool/extract-pages',
     description: 'Extract specific pages from a PDF',
+    isActive: true,
   },
 
   // ---- Conversion ----
@@ -92,6 +98,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'image-to-pdf',
     route: '/tool/images-to-pdf',
     description: 'Convert images into a PDF document',
+    isActive: true,
   },
   {
     id: 'pdf-to-images',
@@ -100,6 +107,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'pdf-to-image',
     route: '/tool/pdf-to-images',
     description: 'Convert PDF pages into image files',
+    isActive: true,
   },
   {
     id: 'pdf-to-text',
@@ -126,6 +134,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'watermark',
     route: '/tool/add-watermark',
     description: 'Add text or image watermarks to your PDF',
+    isActive: true,
   },
   {
     id: 'add-text',
@@ -134,6 +143,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'add-text',
     route: '/tool/add-text',
     description: 'Insert text annotations into PDF pages',
+    isActive: true,
   },
   {
     id: 'add-signature',
@@ -150,6 +160,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'add-image',
     route: '/tool/add-image',
     description: 'Insert images into your PDF pages',
+    isActive: true,
   },
 
   // ---- Scanner ----
@@ -212,6 +223,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'metadata',
     route: '/tool/metadata-viewer',
     description: 'View and edit PDF metadata properties',
+    isActive: true,
   },
   {
     id: 'file-size-analyzer',
@@ -220,6 +232,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     icon: 'file-size',
     route: '/tool/file-size-analyzer',
     description: 'Analyze PDF file size and optimization opportunities',
+    isActive: true,
   },
 ];
 

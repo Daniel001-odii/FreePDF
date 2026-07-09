@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
+  Alert,
   FlatList,
   Image,
   Modal,
@@ -19,6 +20,7 @@ import { TOOL_DEFINITIONS } from '@/src/constants/toolDefinitions';
 import { useFilesStore } from '@/src/stores/filesStore';
 import type { DeviceFile, FileType } from '@/src/types';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, G, LinearGradient, Path, RadialGradient, Stop, SvgProps } from 'react-native-svg';
 
@@ -368,6 +370,35 @@ export default function HomeScreen() {
     }
   };
 
+  const handleImageToPDFPick = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert('Permission Denied', 'Permission to access gallery is required to select images.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const uris = result.assets.map(asset => asset.uri);
+        router.push({
+          pathname: '/tool/images-to-pdf',
+          params: {
+            images: JSON.stringify(uris),
+          },
+        } as any);
+      }
+    } catch (err) {
+      console.error('Image picker error:', err);
+      Alert.alert('Error', 'Failed to pick images from gallery.');
+    }
+  };
+
   const filteredTools = TOOL_DEFINITIONS.filter((tool) => {
     const matchesSearch = search
       ? tool.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -453,7 +484,7 @@ export default function HomeScreen() {
               />
               <QuickActionCard
                 label="Image to PDF"
-                onPress={() => handlePickAndNavigate(pickImageFiles)}
+                onPress={handleImageToPDFPick}
                 renderIcon={() => <FluentImageColor16 />}
               />
             </View>

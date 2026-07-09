@@ -2,7 +2,7 @@
   "expo": {
     "name": "FreePDF",
     "slug": "FreePDF",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "freepdf",
@@ -11,7 +11,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.daniel-odii.FreePDF",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos to select images for PDF conversion"
       }
     },
     "android": {
@@ -38,6 +39,12 @@
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to select images for PDF conversion"
         }
       ]
     ],

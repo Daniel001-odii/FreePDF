@@ -64,6 +64,7 @@ export interface ToolDefinition {
   route: string;
   description: string;
   isPremium?: boolean;
+  isActive?: boolean;
 }
 
 /** Icon names used in the app (HugeIcons) */
