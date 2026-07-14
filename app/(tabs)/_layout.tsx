@@ -8,18 +8,22 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Tabs } from 'expo-router';
 import { View } from 'react-native';
 
-import { Palette } from '@/constants/Colors';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
 
 export default function TabLayout() {
+  const theme = useColorScheme();
+  const colors = Colors[theme];
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Palette.accent,
-        tabBarInactiveTintColor: Palette.textMuted,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          backgroundColor: Palette.bg,
-          borderTopColor: Palette.border,
+          backgroundColor: colors.bg,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
           height: 100,
           paddingBottom: 10,
@@ -31,6 +35,7 @@ export default function TabLayout() {
         },
       }}
     >
+
       <Tabs.Screen
         name="index"
         options={{

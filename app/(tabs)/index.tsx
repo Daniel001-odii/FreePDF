@@ -12,6 +12,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useColorScheme } from '@/components/useColorScheme';
 
 import FileActionSheet from '@/components/FileActionSheet';
 import FileCard from '@/components/FileCard';
@@ -165,7 +166,9 @@ export function FluentWordToPdf28(props: SvgProps) {
 
 export function HugeiconsMenu04(props: any) {
   return (
-    <Svg width="28" height="28" viewBox="0 0 24 24">{/* Icon from Huge Icons by Hugeicons - undefined */}<Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 5h10M4 12h16M7 19h10" /></Svg>
+    <Svg width="28" height="28" viewBox="0 0 24 24" {...props}>
+      <Path fill="none" stroke={props.color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 5h10M4 12h16M7 19h10" />
+    </Svg>
   )
 }
 
@@ -308,7 +311,9 @@ export function HugeiconsMenu06(props: any) {
 
 export function HugeiconsFilter(props: any) {
   return (
-    <Svg width="20" height="20" viewBox="0 0 24 24">{/* Icon from Huge Icons by Hugeicons - undefined */}<Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8.857 12.506C6.37 10.646 4.596 8.6 3.627 7.45c-.3-.356-.398-.617-.457-1.076c-.202-1.572-.303-2.358.158-2.866S4.604 3 6.234 3h11.532c1.63 0 2.445 0 2.906.507c.461.508.36 1.294.158 2.866c-.06.459-.158.72-.457 1.076c-.97 1.152-2.747 3.202-5.24 5.065a1.05 1.05 0 0 0-.402.747c-.247 2.731-.475 4.227-.617 4.983c-.229 1.222-1.96 1.957-2.888 2.612c-.552.39-1.222-.074-1.293-.678a196 196 0 0 1-.674-6.917a1.05 1.05 0 0 0-.402-.755" /></Svg>
+    <Svg width="20" height="20" viewBox="0 0 24 24" {...props}>
+      <Path fill="none" stroke={props.color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8.857 12.506C6.37 10.646 4.596 8.6 3.627 7.45c-.3-.356-.398-.617-.457-1.076c-.202-1.572-.303-2.358.158-2.866S4.604 3 6.234 3h11.532c1.63 0 2.445 0 2.906.507c.461.508.36 1.294.158 2.866c-.06.459-.158.72-.457 1.076c-.97 1.152-2.747 3.202-5.24 5.065a1.05 1.05 0 0 0-.402.747c-.247 2.731-.475 4.227-.617 4.983c-.229 1.222-1.96 1.957-2.888 2.612c-.552.39-1.222-.074-1.293-.678a196 196 0 0 1-.674-6.917a1.05 1.05 0 0 0-.402-.755" />
+    </Svg>
   )
 }
 
@@ -323,6 +328,10 @@ export default function HomeScreen() {
   const loadAll = useFilesStore((s) => s.loadAll);
   const addFile = useFilesStore((s) => s.addFile);
   const removeFile = useFilesStore((s) => s.removeFile);
+
+  const activeTheme = useColorScheme();
+  const isDark = activeTheme === 'dark';
+  const textColor = isDark ? '#ffffff' : '#1C1C1E';
 
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
@@ -445,7 +454,7 @@ export default function HomeScreen() {
   const importLabel = Platform.OS === 'ios' ? 'From iCloud' : 'Import from Device';
 
   return (
-    <SafeAreaView className='flex-1 bg-[#0A0A0A]' edges={['top']}>
+    <SafeAreaView className='flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]' edges={['top']}>
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -461,7 +470,7 @@ export default function HomeScreen() {
         {/* Brand Header */}
         <View className="flex-row items-center justify-between px-6 pt-8 pb-6">
           <View>
-            <Text className="text-3xl font-black text-white tracking-tight" style={{
+            <Text className="text-3xl font-black text-[#1C1C1E] dark:text-white tracking-tight" style={{
               fontFamily: "RocaTwoBold"
             }}>
               FreePDF
@@ -475,7 +484,7 @@ export default function HomeScreen() {
               onPress={() => router.push('/settings')}
               className="w-10 h-10 rounded-full items-center justify-center "
             >
-              <HugeiconsMenu04 />
+              <HugeiconsMenu04 color={textColor} />
             </Pressable>
           </View>
         </View>
@@ -525,23 +534,23 @@ export default function HomeScreen() {
         {/* Recent Files */}
         <View className="pb-7">
           <View className="px-6 flex-row items-center justify-between mb-4">
-            <Text className="text-base text-xl font-bold text-white tracking-tight">
+            <Text className="text-base text-xl font-bold text-[#1C1C1E] dark:text-white tracking-tight">
               Recent Files
             </Text>
             <View className="flex-row items-center" style={{ gap: 4 }}>
               {/* Display type toggle */}
               {/*  <Pressable
-                onPress={() => setDisplayMode(displayMode === 'list' ? 'grid' : 'list')}
-                className="w-8 h-8 items-center justify-center"
-              >
-                {displayMode === 'list' ? <HugeiconsLayoutGrid /> : <HugeiconsMenu06 />}
-              </Pressable> */}
+                 onPress={() => setDisplayMode(displayMode === 'list' ? 'grid' : 'list')}
+                 className="w-8 h-8 items-center justify-center"
+               >
+                 {displayMode === 'list' ? <HugeiconsLayoutGrid /> : <HugeiconsMenu06 />}
+               </Pressable> */}
               {/* Filter */}
               <Pressable
                 onPress={() => setShowFilterSheet(true)}
                 className="w-8 h-8 items-center justify-center"
               >
-                <HugeiconsFilter />
+                <HugeiconsFilter color={textColor} />
               </Pressable>
               {files.length > 8 && (
                 <Pressable onPress={() => router.push('/recents')} className="ml-1">
@@ -557,7 +566,7 @@ export default function HomeScreen() {
               className="mx-6 py-12 items-center active:opacity-80"
             >
               <Image source={require('@/assets/images/add-file.png')} style={{ width: 40, height: 40 }} />
-              <Text className="text-[#9C9CA3] mt-4 text-center font-bold">
+              <Text className="text-[#8E8E93] dark:text-[#9C9CA3] mt-4 text-center font-bold">
                 No files yet. Tap to import.
               </Text>
             </Pressable>
@@ -645,9 +654,9 @@ function QuickActionCard({
   return (
     <Pressable
       onPress={onPress}
-      className="flex-1 bg-[#1C1C1E] rounded-xl p-5 flex-row items-center justify-between active:opacity-80"
+      className="flex-1 bg-white dark:bg-[#1C1C1E] rounded-xl p-5 flex-row items-center justify-between active:opacity-80"
     >
-      <Text className="text-white font-extrabold text-sm flex-1 mr-2">
+      <Text className="text-[#1C1C1E] dark:text-white font-extrabold text-sm flex-1 mr-2">
         {label}
       </Text>
       <View className="w-9 h-9 rounded-xl items-center justify-center">
@@ -689,6 +698,9 @@ function FilterSheet({
     { key: 'modifiedAt', label: 'Date Modified', icon: ClockIcon },
   ] as const;
 
+  const activeTheme = useColorScheme();
+  const isDark = activeTheme === 'dark';
+
   return (
     <Modal
       visible={visible}
@@ -700,24 +712,11 @@ function FilterSheet({
       <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
         <Pressable className="flex-1" onPress={onClose} />
 
-        <View className="!bg-[#2e2e2e] border-t border-[#2C2C2E] rounded-t-[32px] px-6 pb-12">
+        <View className="bg-white dark:bg-[#2e2e2e] border-t border-[#E5E5EA] dark:border-[#2C2C2E] rounded-t-[32px] px-6 pb-12">
           {/* Bottom Sheet Indicator Handle */}
           <View className="items-center mb-6">
-            <View className="w-12 h-1 bg-[#2C2C2E] rounded-full" />
+            <View className="w-12 h-1 bg-[#E5E5EA] dark:bg-[#2C2C2E] rounded-full" />
           </View>
-
-          {/* Header row */}
-          {/*      <View className="flex-row items-center justify-between mb-6">
-            <Text className="text-xl font-bold text-white tracking-tight">
-              Sort & Filter
-            </Text>
-            <Pressable
-              onPress={onClose}
-              className="w-8 h-8 rounded-full bg-[#1C1C1E] items-center justify-center active:opacity-70"
-            >
-              <CloseIcon />
-            </Pressable>
-          </View> */}
 
           {/* Section: Order */}
           <View>
@@ -734,7 +733,7 @@ function FilterSheet({
                 >
                   <Text
                     className="text-xl font-semibold"
-                    style={{ color: isSelected ? '#FFFFFF' : '#9C9CA3' }}
+                    style={{ color: isSelected ? (isDark ? '#FFFFFF' : '#1C1C1E') : (isDark ? '#9C9CA3' : '#8E8E93') }}
                   >
                     {opt.label}
                   </Text>
@@ -751,13 +750,12 @@ function FilterSheet({
 
 
           {/* Separator */}
-          <View className="bg-[#2C2C2E] h-px mb-6" />
+          <View className="bg-[#E5E5EA] dark:bg-[#2C2C2E] h-px mb-6" />
 
           {/* Section: Sort By */}
           <View className="mb-6" style={{ gap: 8 }}>
             {sortOptions.map((opt) => {
               const isSelected = localSortBy === opt.key;
-              const Icon = opt.icon;
               return (
                 <Pressable
                   key={opt.key}
@@ -767,7 +765,7 @@ function FilterSheet({
                   <View className="flex-row items-center" style={{ gap: 12 }}>
                     <Text
                       className="text-xl font-semibold"
-                      style={{ color: isSelected ? '#FFFFFF' : '#9C9CA3' }}
+                      style={{ color: isSelected ? (isDark ? '#FFFFFF' : '#1C1C1E') : (isDark ? '#9C9CA3' : '#8E8E93') }}
                     >
                       {opt.label}
                     </Text>
@@ -794,9 +792,9 @@ function FilterSheet({
                 setLocalSortBy('modifiedAt');
                 setLocalSortOrder('desc');
               }}
-              className="flex-1 bg-[#1C1C1E] py-4 rounded-2xl items-center active:opacity-80 border border-[#2C2C2E]"
+              className="flex-1 bg-[#F2F2F7] dark:bg-[#1C1C1E] py-4 rounded-2xl items-center active:opacity-80 border border-[#E5E5EA] dark:border-[#2C2C2E]"
             >
-              <Text className="text-[#9C9CA3] text-sm font-bold">Clear</Text>
+              <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-sm font-bold">Clear</Text>
             </Pressable>
 
             <Pressable

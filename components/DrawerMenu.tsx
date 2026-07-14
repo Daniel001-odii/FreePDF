@@ -16,7 +16,6 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useDrawerStore } from '@/src/stores/drawerStore';
-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HugeIcon } from './HugeIcon';
 
@@ -119,7 +118,7 @@ export function DrawerMenu() {
         <Pressable className="flex-1" onPress={close} />
       </Animated.View>
 
-      {/* Drawer – slides in from right, pushes screen left (visual) */}
+      {/* Drawer – slides in from right */}
       <Animated.View
         style={[
           drawerStyle,
@@ -131,14 +130,14 @@ export function DrawerMenu() {
             width: DRAWER_WIDTH,
           },
         ]}
-        className="bg-white dark:bg-gray-900 shadow-2xl"
+        className="bg-white dark:bg-[#161618] shadow-2xl"
       >
         <View
           style={{ paddingTop: insets.top + 16 }}
           className="flex-1"
         >
           {/* Header */}
-          <View className="px-6 pb-6 border-b border-gray-100 dark:border-gray-800">
+          <View className="px-6 pb-6 border-b border-gray-100 dark:border-[#2C2C2E]">
             <View className="flex-row items-center justify-between">
               <Text className="text-xl font-bold text-gray-900 dark:text-white">
                 FreePDF
@@ -163,7 +162,7 @@ export function DrawerMenu() {
                 return (
                   <View
                     key={`div-${index}`}
-                    className="h-px bg-gray-100 dark:bg-gray-800 my-3 mx-3"
+                    className="h-px bg-gray-100 dark:bg-[#2C2C2E] my-3 mx-3"
                   />
                 );
               }
@@ -171,7 +170,7 @@ export function DrawerMenu() {
                 <Pressable
                   key={item.label}
                   onPress={item.onPress}
-                  className="flex-row items-center px-3 py-3.5 rounded-xl active:bg-gray-100 dark:active:bg-gray-800"
+                  className="flex-row items-center px-3 py-3.5 rounded-xl active:bg-gray-100 dark:active:bg-[#2C2C2E]"
                 >
                   <HugeIcon
                     name={item.icon}
@@ -187,7 +186,7 @@ export function DrawerMenu() {
           </ScrollView>
 
           {/* Footer */}
-          <View className="px-6 py-4 border-t border-gray-100 dark:border-gray-800">
+          <View className="px-6 py-4 border-t border-gray-100 dark:border-[#2C2C2E]">
             <Text className="text-xs text-gray-400 dark:text-gray-600 text-center">
               FreePDF v1.0.0
             </Text>

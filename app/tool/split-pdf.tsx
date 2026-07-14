@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/components/useColorScheme';
 import { Stack, useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
@@ -24,12 +25,12 @@ import type { DeviceFile } from '@/src/types';
 import { usePostHog } from 'posthog-react-native';
 
 // Custom Arrow Left Icon
-function HugeiconsArrowLeft01() {
+function HugeiconsArrowLeft01({ color }: { color?: string }) {
   return (
     <Svg width="28" height="28" viewBox="0 0 24 24">
       <Path
         fill="none"
-        stroke="#fff"
+        stroke={color || "#fff"}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.5"
@@ -60,7 +61,7 @@ function ShareIcon() {
     <Svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <Path
         d="M8.5 12H15.5M12.5 9V15M19 12C19 15.866 15.866 19 12 19C8.13401 19 5 15.866 5 12C5 8.13401 8.13401 5 12 5C15.866 5 19 8.13401 19 12Z"
-        stroke="#FFFFFF"
+        stroke={color || "#fff"}
         strokeWidth="2.5"
         strokeLinecap="round"
       />
@@ -69,6 +70,10 @@ function ShareIcon() {
 }
 
 export default function SplitPDFScreen() {
+  const activeTheme = useColorScheme();
+  const isDark = activeTheme === 'dark';
+  const textColor = isDark ? '#ffffff' : '#1C1C1E';
+
   const router = useRouter();
   const posthog = usePostHog();
   const [file, setFile] = useState<{ name: string; uri: string; size?: number } | null>(null);
@@ -202,21 +207,21 @@ export default function SplitPDFScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-[#0A0A0A]" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* ===== Header ===== */}
-      <View className="flex-row items-center px-4 py-4 border-b border-[#2C2C2E]">
+      <View className="flex-row items-center px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#0A0A0A]">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center mr-2"
         >
-          <HugeiconsArrowLeft01 />
+          <HugeiconsArrowLeft01 color={textColor} />
         </Pressable>
 
         <Text
           style={{ fontFamily: 'RocaTwoBold' }}
-          className="text-white text-2xl font-black"
+          className="text-[#1C1C1E] dark:text-white text-2xl font-black"
         >
           Split PDF
         </Text>
@@ -231,10 +236,10 @@ export default function SplitPDFScreen() {
             source={require('@/assets/images/add-file.png')}
             style={{ width: 40, height: 40 }}
           />
-          <Text className="text-white text-base font-extrabold mt-4 mb-2 text-center">
+          <Text className="text-[#1C1C1E] dark:text-white text-base font-extrabold mt-4 mb-2 text-center">
             Select PDF File
           </Text>
-          <Text className="text-[#9C9CA3] text-xs font-semibold text-center max-w-[260px] leading-relaxed">
+          <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs font-semibold text-center max-w-[260px] leading-relaxed">
             Tap anywhere to import a PDF document from your device
           </Text>
         </Pressable>
@@ -244,7 +249,7 @@ export default function SplitPDFScreen() {
           contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >
-          <Text className="text-[#9C9CA3] text-sm mb-6 leading-relaxed">
+          <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-sm mb-6 leading-relaxed">
             Divide a PDF document into separate files by defining page range presets. Use commas to separate output files (e.g. 1-2, 3, 4-6).
           </Text>
 
@@ -257,7 +262,7 @@ export default function SplitPDFScreen() {
                 {/* File Details (Borderless with Thumbnail) */}
                 <View className="flex-row items-center mb-5" style={{ gap: 12 }}>
                   <View
-                    className="rounded-lg overflow-hidden items-center justify-center bg-[#1C1C1E] border border-[#2C2C2E]"
+                    className="rounded-lg overflow-hidden items-center justify-center bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E]"
                     style={{ width: 44, height: 56 }}
                   >
                     {thumbnailUri ? (
@@ -272,22 +277,22 @@ export default function SplitPDFScreen() {
                   </View>
 
                   <View className="flex-1" style={{ gap: 2 }}>
-                    <Text className="text-sm font-black text-white" numberOfLines={1}>
+                    <Text className="text-sm font-black text-[#1C1C1E] dark:text-white" numberOfLines={1}>
                       {file.name}
                     </Text>
-                    <Text className="text-[11px] font-bold text-[#9C9CA3]">
+                    <Text className="text-[11px] font-bold text-[#8E8E93] dark:text-[#9C9CA3]">
                       Total Pages: {pageCount} · PDF
                     </Text>
                   </View>
                 </View>
 
                 {/* Range Input Card */}
-                <View className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-2xl p-5 mb-5">
-                  <Text className="text-white text-base font-bold mb-2">
+                <View className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-5 mb-5">
+                  <Text className="text-[#1C1C1E] dark:text-white text-base font-bold mb-2">
                     Define Range Output
                   </Text>
-                  <Text className="text-[#9C9CA3] text-xs leading-relaxed mb-4">
-                    Enter the range formats. For example, entering <Text className="text-white font-extrabold">1-2, 3-4</Text> will split a 4-page PDF into two double-page files.
+                  <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs leading-relaxed mb-4">
+                    Enter the range formats. For example, entering <Text className="text-[#1C1C1E] dark:text-white font-extrabold">1-2, 3-4</Text> will split a 4-page PDF into two double-page files.
                   </Text>
 
                   <TextInput
@@ -296,15 +301,15 @@ export default function SplitPDFScreen() {
                     placeholder="e.g. 1-2, 3-5, 6"
                     placeholderTextColor="#5C5C61"
                     keyboardAppearance="dark"
-                    className="w-full bg-[#0A0A0A] border border-[#2C2C2E] rounded-xl px-4 py-3.5 text-white font-semibold text-sm focus:border-[#FF3B30] mb-4"
+                    className="w-full bg-white dark:bg-[#0A0A0A] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl px-4 py-3.5 text-[#1C1C1E] dark:text-white font-semibold text-sm focus:border-[#FF3B30] mb-4"
                   />
 
                   <View className="flex-row gap-3">
                     <Pressable
                       onPress={pickFile}
-                      className="flex-1 bg-[#0A0A0A] border border-[#2C2C2E] py-3.5 rounded-xl items-center active:bg-[#161618]"
+                      className="flex-1 bg-white dark:bg-[#0A0A0A] border border-[#E5E5EA] dark:border-[#2C2C2E] py-3.5 rounded-xl items-center active:bg-[#161618]"
                     >
-                      <Text className="text-white font-bold text-sm">
+                      <Text className="text-[#1C1C1E] dark:text-white font-bold text-sm">
                         Change File
                       </Text>
                     </Pressable>
@@ -328,7 +333,7 @@ export default function SplitPDFScreen() {
                 {/* Split Output List */}
                 {outputUris.length > 0 && (
                   <View className="gap-3 mt-4">
-                    <Text className="text-xs font-black uppercase text-[#9C9CA3] tracking-wider mb-1 px-1">
+                    <Text className="text-xs font-black uppercase text-[#8E8E93] dark:text-[#9C9CA3] tracking-wider mb-1 px-1">
                       Split Results ({outputUris.length} files)
                     </Text>
                     {outputUris.map((uri, index) => {
@@ -337,16 +342,16 @@ export default function SplitPDFScreen() {
                       return (
                         <View
                           key={index}
-                          className="flex-row items-center bg-[#1C1C1E] border border-[#2C2C2E] rounded-2xl p-4 justify-between"
+                          className="flex-row items-center bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-4 justify-between"
                         >
                           <View className="flex-1 mr-3">
                             <Text
-                              className="text-white text-sm font-semibold"
+                              className="text-[#1C1C1E] dark:text-white text-sm font-semibold"
                               numberOfLines={1}
                             >
                               {filename}
                             </Text>
-                            <Text className="text-[#9C9CA3] text-[10px] mt-0.5 font-bold uppercase">
+                            <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-[10px] mt-0.5 font-bold uppercase">
                               Part {index + 1}
                             </Text>
                           </View>
@@ -355,7 +360,7 @@ export default function SplitPDFScreen() {
                             className="bg-[#3A1F1E] px-4 py-2 rounded-xl flex-row items-center active:bg-[#4E2B2A]"
                           >
                             <ShareIcon />
-                            <Text className="text-white font-extrabold text-xs ml-1.5">
+                            <Text className="text-[#1C1C1E] dark:text-white font-extrabold text-xs ml-1.5">
                               Share
                             </Text>
                           </Pressable>

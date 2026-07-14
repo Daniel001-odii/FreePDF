@@ -14,16 +14,17 @@ import { Palette } from '@/constants/Colors';
 import { getFileById, insertFile } from '@/src/db/repository';
 import { compressPDF } from '@/src/services/pdfService';
 import type { DeviceFile } from '@/src/types';
+import { useColorScheme } from '@/components/useColorScheme';
 import * as FileSystem from 'expo-file-system/legacy';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'react-native';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import Svg, { Path } from 'react-native-svg';
 
-export function HugeiconsArrowLeft01() {
+export function HugeiconsArrowLeft01({ color }: { color?: string }) {
     return (
         <Svg width="28" height="28" viewBox="0 0 24 24">
-            <Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 6s-6 4.419-6 6s6 6 6 6" />
+            <Path fill="none" stroke={color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 6s-6 4.419-6 6s6 6 6 6" />
         </Svg>
     );
 }
@@ -151,9 +152,13 @@ export default function ReduceSizeScreen() {
         }
     };
 
+    const activeTheme = useColorScheme();
+    const isDark = activeTheme === 'dark';
+    const textColor = isDark ? '#ffffff' : '#1C1C1E';
+
     if (loading) {
         return (
-            <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+            <SafeAreaView className="flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]" edges={['top']}>
                 <View className="flex-1 items-center justify-center">
                     <ActivityIndicator size="large" color={Palette.accent} />
                 </View>
@@ -163,17 +168,17 @@ export default function ReduceSizeScreen() {
 
     if (!file) {
         return (
-            <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+            <SafeAreaView className="flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]" edges={['top']}>
                 <View className="flex-1 items-center justify-center px-6">
-                    <HugeIcon name="recents" size={48} color={Palette.textMuted} />
-                    <Text className="text-[#9C9CA3] mt-4 text-base font-bold text-center">
+                    <HugeIcon name="recents" size={48} color={isDark ? '#9C9CA3' : '#8E8E93'} />
+                    <Text className="text-[#8E8E93] dark:text-[#9C9CA3] mt-4 text-base font-bold text-center">
                         File not found.
                     </Text>
                     <Pressable
                         onPress={() => router.back()}
-                        className="mt-6 bg-[#1C1C1E] px-6 py-3 rounded-xl"
+                        className="mt-6 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-transparent px-6 py-3 rounded-xl"
                     >
-                        <Text className="text-white font-bold">Go Back</Text>
+                        <Text className="text-[#1C1C1E] dark:text-white font-bold">Go Back</Text>
                     </Pressable>
                 </View>
             </SafeAreaView>
@@ -185,17 +190,17 @@ export default function ReduceSizeScreen() {
         : 0;
 
     return (
-        <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]" edges={['top']}>
             {/* Header */}
-            <View className="flex-row items-center justify-between px-4 py-4 border-b border-[#2C2C2E]">
+            <View className="flex-row items-center justify-between px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#0A0A0A]">
                 <Pressable
                     onPress={() => router.back()}
                     className="w-10 h-10 items-center justify-center"
                 >
-                    <HugeiconsArrowLeft01 />
+                    <HugeiconsArrowLeft01 color={textColor} />
                 </Pressable>
 
-                <Text className="flex-1 text-base font-extrabold text-white text-xl text-center mx-2">
+                <Text className="flex-1 text-base font-extrabold text-[#1C1C1E] dark:text-white text-xl text-center mx-2">
                     Reduce File Size
                 </Text>
 
@@ -212,7 +217,9 @@ export default function ReduceSizeScreen() {
                             height: 72,
                             borderRadius: 8,
                             overflow: 'hidden',
-                            backgroundColor: '#1C1C1E',
+                            backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+                            borderWidth: isDark ? 0 : 1,
+                            borderColor: '#E5E5EA',
                         }}
                     >
                         {thumbUri ? (
@@ -230,10 +237,10 @@ export default function ReduceSizeScreen() {
 
                     {/* Name + size */}
                     <View className="flex-1">
-                        <Text className="text-white font-bold text-base" numberOfLines={2}>
+                        <Text className="text-[#1C1C1E] dark:text-white font-bold text-base" numberOfLines={2}>
                             {file.name}
                         </Text>
-                        <Text className="text-[#9C9CA3] text-xs font-semibold mt-1">
+                        <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs font-semibold mt-1">
                             {formatSize(originalSize)}
                         </Text>
                     </View>
@@ -242,7 +249,7 @@ export default function ReduceSizeScreen() {
                 {!compressedUri ? (
                     /* ----- Configuration View ----- */
                     <View>
-                        <Text className="text-white font-bold text-base mb-4">
+                        <Text className="text-[#1C1C1E] dark:text-white font-bold text-base mb-4">
                             Select Compression Level
                         </Text>
 
@@ -255,15 +262,15 @@ export default function ReduceSizeScreen() {
                                         onPress={() => setSelectedPreset(preset.key)}
                                         className="rounded-2xl p-4 flex-row items-center justify-between border"
                                         style={{
-                                            backgroundColor: isSelected ? '#1C1C1E' : '#161618',
-                                            borderColor: isSelected ? '#FF3B30' : '#2C2C2E',
+                                            backgroundColor: isSelected ? (isDark ? '#1C1C1E' : '#FFEBEA') : (isDark ? '#161618' : '#FFFFFF'),
+                                            borderColor: isSelected ? '#FF3B30' : (isDark ? '#2C2C2E' : '#E5E5EA'),
                                         }}
                                     >
                                         <View className="flex-1 pr-2">
-                                            <Text className="text-white font-bold text-sm">
+                                            <Text className="font-bold text-sm" style={{ color: isSelected ? (isDark ? '#FFFFFF' : '#FF3B30') : (isDark ? '#FFFFFF' : '#1C1C1E') }}>
                                                 {preset.label}
                                             </Text>
-                                            <Text className="text-[#9C9CA3] text-xs font-medium mt-1">
+                                            <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs font-medium mt-1">
                                                 {preset.desc}
                                             </Text>
                                         </View>
@@ -273,7 +280,7 @@ export default function ReduceSizeScreen() {
                                                 height: 20,
                                                 borderRadius: 10,
                                                 borderWidth: 2,
-                                                borderColor: isSelected ? '#FF3B30' : '#9C9CA3',
+                                                borderColor: isSelected ? '#FF3B30' : (isDark ? '#9C9CA3' : '#8E8E93'),
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                             }}
@@ -306,7 +313,7 @@ export default function ReduceSizeScreen() {
                             <View className="w-16 h-16 rounded-full bg-[#22C55E]/20 items-center justify-center mb-4">
                                 <HugeiconsTick02 />
                             </View>
-                            <Text className="text-white font-black text-2xl text-center">
+                            <Text className="text-[#1C1C1E] dark:text-white font-black text-2xl text-center">
                                 Size Reduced Successfully!
                             </Text>
                             {savingsPercentage > 0 && (
@@ -317,18 +324,18 @@ export default function ReduceSizeScreen() {
                         </View>
 
                         {/* Comparison Card */}
-                        <View className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-2xl p-5 mb-8">
-                            <View className="flex-row justify-between mb-4 border-b border-[#2C2C2E] pb-3">
-                                <Text className="text-[#9C9CA3] text-sm font-semibold">Original Size</Text>
-                                <Text className="text-white text-sm font-bold">{formatSize(originalSize)}</Text>
+                        <View className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-5 mb-8">
+                            <View className="flex-row justify-between mb-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E] pb-3">
+                                <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-sm font-semibold">Original Size</Text>
+                                <Text className="text-[#1C1C1E] dark:text-white text-sm font-bold">{formatSize(originalSize)}</Text>
                             </View>
                             <View className="flex-row justify-between mb-4">
-                                <Text className="text-[#9C9CA3] text-sm font-semibold">Compressed Size</Text>
-                                <Text className="text-white text-sm font-bold">{formatSize(compressedSize)}</Text>
+                                <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-sm font-semibold">Compressed Size</Text>
+                                <Text className="text-[#1C1C1E] dark:text-white text-sm font-bold">{formatSize(compressedSize)}</Text>
                             </View>
                             {originalSize > compressedSize && (
-                                <View className="flex-row justify-between pt-3 border-t border-[#2C2C2E]/60">
-                                    <Text className="text-[#9C9CA3] text-sm font-semibold">Total Savings</Text>
+                                <View className="flex-row justify-between pt-3 border-t border-[#E5E5EA] dark:border-[#2C2C2E]/60">
+                                    <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-sm font-semibold">Total Savings</Text>
                                     <Text className="text-[#22C55E] text-sm font-bold">
                                         {formatSize(originalSize - compressedSize)} ({savingsPercentage}% Less)
                                     </Text>
@@ -339,9 +346,9 @@ export default function ReduceSizeScreen() {
                         <View className="flex-row gap-4">
                             <Pressable
                                 onPress={() => setCompressedUri(null)}
-                                className="flex-1 bg-[#1C1C1E] py-4 rounded-2xl items-center active:opacity-80 border border-[#2C2C2E]"
+                                className="flex-1 bg-[#F2F2F7] dark:bg-[#1C1C1E] py-4 rounded-2xl items-center active:opacity-80 border border-[#E5E5EA] dark:border-[#2C2C2E]"
                             >
-                                <Text className="text-[#9C9CA3] text-base font-bold">Retry</Text>
+                                <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-base font-bold">Retry</Text>
                             </Pressable>
 
                             <Pressable

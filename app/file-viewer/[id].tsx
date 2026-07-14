@@ -1,4 +1,4 @@
-import { useGlobalSearchParams, useRouter, useNavigation } from 'expo-router';
+import { useGlobalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
@@ -6,26 +6,27 @@ import {
     Animated,
     Dimensions,
     Image,
+    Modal,
     PanResponder,
     Pressable,
     ScrollView,
     Text,
     TextInput,
     View,
-    Modal,
 } from 'react-native';
 
 import { HugeIcon } from '@/components/HugeIcon';
+import { useColorScheme } from '@/components/useColorScheme';
 import { Palette } from '@/constants/Colors';
 import { getFileById, insertFile, renameFile } from '@/src/db/repository';
-import { useFilesStore } from '@/src/stores/filesStore';
-import { applyAdjustmentsToPDF, applyAdjustmentsToImage, loadPreviewPixels, generateFilteredPreview } from '@/src/services/pdfAdjustmentService';
 import type { PreviewPixelData } from '@/src/services/pdfAdjustmentService';
+import { applyAdjustmentsToImage, applyAdjustmentsToPDF, generateFilteredPreview, loadPreviewPixels } from '@/src/services/pdfAdjustmentService';
+import { useFilesStore } from '@/src/stores/filesStore';
 import type { DeviceFile } from '@/src/types';
-import { usePostHog } from 'posthog-react-native';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
-import RNBlobUtil from 'react-native-blob-util';
 import * as Sharing from 'expo-sharing';
+import { usePostHog } from 'posthog-react-native';
+import RNBlobUtil from 'react-native-blob-util';
 import Pdf from 'react-native-pdf';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,24 +38,24 @@ import Svg, { G, Path } from 'react-native-svg';
 
 export function HugeiconsArrowLeft01(props: any) {
     return (
-        <Svg width="28" height="28" viewBox="0 0 24 24">
-            <Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 6s-6 4.419-6 6s6 6 6 6" />
+        <Svg width="28" height="28" viewBox="0 0 24 24" {...props}>
+            <Path fill="none" stroke={props.color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 6s-6 4.419-6 6s6 6 6 6" />
         </Svg>
     );
 }
 
 export function HugeiconsShare03(props: any) {
     return (
-        <Svg width="28" height="28" viewBox="0 0 24 24">
-            <Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 7s2.196-2.716 3.404-3.761a.9.9 0 0 1 .63-.238a.92.92 0 0 1 .562.238C13.804 4.284 16 7 16 7m-3.966-3v11M8 11c-1.4 0-2.1 0-2.635.273a2.5 2.5 0 0 0-1.093 1.092C4 12.9 4 13.6 4 15v1c0 2.357 0 3.535.732 4.268S6.643 21 9 21h6c2.357 0 3.535 0 4.268-.732C20 19.535 20 18.357 20 16v-1c0-1.4 0-2.1-.273-2.635a2.5 2.5 0 0 0-1.092-1.092C18.1 11 17.4 11 16 11" />
+        <Svg width="28" height="28" viewBox="0 0 24 24" {...props}>
+            <Path fill="none" stroke={props.color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 7s2.196-2.716 3.404-3.761a.9.9 0 0 1 .63-.238a.92.92 0 0 1 .562.238C13.804 4.284 16 7 16 7m-3.966-3v11M8 11c-1.4 0-2.1 0-2.635.273a2.5 2.5 0 0 0-1.093 1.092C4 12.9 4 13.6 4 15v1c0 2.357 0 3.535.732 4.268S6.643 21 9 21h6c2.357 0 3.535 0 4.268-.732C20 19.535 20 18.357 20 16v-1c0-1.4 0-2.1-.273-2.635a2.5 2.5 0 0 0-1.092-1.092C18.1 11 17.4 11 16 11" />
         </Svg>
     );
 }
 
 export function HugeiconsFiles01(props: any) {
     return (
-        <Svg width="24" height="24" viewBox="0 0 24 24">
-            <G fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+        <Svg width="24" height="24" viewBox="0 0 24 24" {...props}>
+            <G fill="none" stroke={props.color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
                 <Path d="M14.5 19h-2c-2.829 0-4.243 0-5.121-.879c-.88-.878-.88-2.293-.88-5.121V8c0-2.828 0-4.243.88-5.121C8.256 2 9.67 2 12.499 2h1.344c.818 0 1.226 0 1.594.152c.367.152.656.442 1.234 1.02l2.657 2.656c.578.578.867.868 1.02 1.235c.152.368.152.776.152 1.594V13c0 2.828 0 4.243-.879 5.121C18.743 19 17.328 19 14.5 19" />
                 <Path d="M15 2.5v1c0 1.886 0 2.828.586 3.414c.585.586 1.528.586 3.414.586h1M6.5 5a3 3 0 0 0-3 3v8c0 2.828 0 4.243.878 5.121C5.257 22 6.671 22 9.5 22h5a3 3 0 0 0 3-3M10 11h4m-4 4h7" />
             </G>
@@ -64,8 +65,8 @@ export function HugeiconsFiles01(props: any) {
 
 export function HugeiconsPdf02(props: any) {
     return (
-        <Svg width="24" height="24" viewBox="0 0 24 24">
-            <G fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+        <Svg width="24" height="24" viewBox="0 0 24 24" {...props}>
+            <G fill="none" stroke={props.color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
                 <Path d="M19 11c0-.818 0-1.57-.152-1.937s-.441-.657-1.02-1.235l-4.736-4.736c-.499-.499-.748-.748-1.058-.896a2 2 0 0 0-.197-.082C11.514 2 11.161 2 10.456 2c-3.245 0-4.868 0-5.967.886a4 4 0 0 0-.603.603C3 4.59 3 6.211 3 9.456V14c0 3.771 0 5.657 1.172 6.828S7.229 22 11 22h8M12 2.5V3c0 2.828 0 4.243.879 5.121C13.757 9 15.172 9 18 9h.5" />
                 <Path d="M21 14h-2a1 1 0 0 0-1 1v1.5m0 0V19m0-2.5h2.5M7 19v-2m0 0v-3h1.5a1.5 1.5 0 0 1 0 3zm5.5-3h1.286c.947 0 1.714.746 1.714 1.667v1.666c0 .92-.768 1.667-1.714 1.667H12.5z" />
             </G>
@@ -75,8 +76,8 @@ export function HugeiconsPdf02(props: any) {
 
 export function HugeiconsFileSync(props: any) {
     return (
-        <Svg width="24" height="24" viewBox="0 0 24 24">
-            <G fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+        <Svg width="24" height="24" viewBox="0 0 24 24" {...props}>
+            <G fill="none" stroke={props.color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
                 <Path d="M20 14.005v-3.344c0-.818 0-1.227-.152-1.595s-.441-.657-1.02-1.235l-4.736-4.739c-.499-.499-.748-.748-1.058-.896a2 2 0 0 0-.197-.082C12.514 2 12.161 2 11.456 2c-3.245 0-4.868 0-5.967.886a4 4 0 0 0-.603.604C4 4.59 4 6.213 4 9.46v4.545c0 3.773 0 5.66 1.172 6.832C6.115 21.78 7.52 21.964 10 22m3-19.5V3c0 2.83 0 4.245.879 5.124c.878.879 2.293.879 5.121.879h.5" />
                 <Path d="m11 16l1 2c.243-1.696 1.737-3 3.5-3c1.19 0 2.24.593 2.873 1.5M20 21l-1-2c-.243 1.696-1.737 3-3.5 3c-1.19 0-2.24-.593-2.873-1.5" />
             </G>
@@ -791,6 +792,10 @@ export default function FileViewerScreen() {
     const navigation = useNavigation();
     const posthog = usePostHog();
     const insets = useSafeAreaInsets();
+    const activeTheme = useColorScheme();
+    const isDark = activeTheme === 'dark';
+    const themeTextColor = isDark ? '#ffffff' : '#1C1C1E';
+
     const { id } = useGlobalSearchParams<{ id: string }>();
     const [file, setFile] = useState<DeviceFile | null>(null);
     const [loading, setLoading] = useState(true);
@@ -1269,13 +1274,13 @@ export default function FileViewerScreen() {
             let tempModifiedUri = '';
             if (file.fileType === 'image') {
                 tempModifiedUri = await applyAdjustmentsToImage(
-                    file.uri, 
+                    file.uri,
                     currentAdjustments,
                     (p) => setSaveProgress(p)
                 );
             } else {
                 tempModifiedUri = await applyAdjustmentsToPDF(
-                    file.uri, 
+                    file.uri,
                     allPagesAdjustments,
                     (p) => setSaveProgress(p),
                     activeSignature || undefined,
@@ -1295,15 +1300,15 @@ export default function FileViewerScreen() {
             await RNBlobUtil.fs.cp(srcPath, destPath);
 
             // Clean up the temporary adjusted file and the old file (if different)
-            await RNBlobUtil.fs.unlink(srcPath).catch(() => {});
+            await RNBlobUtil.fs.unlink(srcPath).catch(() => { });
             if (oldPath !== destPath) {
-                await RNBlobUtil.fs.unlink(oldPath).catch(() => {});
+                await RNBlobUtil.fs.unlink(oldPath).catch(() => { });
             }
 
             // Delete old thumbnail file if it exists (only if it is a separate file, like for PDFs)
             if (file.thumbnail && file.thumbnail !== file.uri) {
                 const thumbPath = file.thumbnail.replace('file://', '');
-                await RNBlobUtil.fs.unlink(thumbPath).catch(() => {});
+                await RNBlobUtil.fs.unlink(thumbPath).catch(() => { });
             }
 
             // Get new file size from the permanent file system path
@@ -1380,7 +1385,7 @@ export default function FileViewerScreen() {
     // ---------- Loading ----------
     if (loading) {
         return (
-            <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+            <SafeAreaView className="flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]" edges={['top']}>
                 <View className="flex-1 items-center justify-center">
                     <ActivityIndicator size="large" color={Palette.accent} />
                 </View>
@@ -1391,17 +1396,17 @@ export default function FileViewerScreen() {
     // ---------- Not Found ----------
     if (!file) {
         return (
-            <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+            <SafeAreaView className="flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]" edges={['top']}>
                 <View className="flex-1 items-center justify-center px-6">
-                    <HugeIcon name="recents" size={48} color={Palette.textMuted} />
-                    <Text className="text-[#9C9CA3] mt-4 text-base font-bold text-center">
+                    <HugeIcon name="recents" size={48} color={isDark ? '#9C9CA3' : '#8E8E93'} />
+                    <Text className="text-[#8E8E93] dark:text-[#9C9CA3] mt-4 text-base font-bold text-center">
                         File not found.
                     </Text>
                     <Pressable
                         onPress={() => router.back()}
-                        className="mt-6 bg-[#1C1C1E] px-6 py-3 rounded-xl"
+                        className="mt-6 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-transparent px-6 py-3 rounded-xl"
                     >
-                        <Text className="text-white font-bold">Go Back</Text>
+                        <Text className="text-[#1C1C1E] dark:text-white font-bold">Go Back</Text>
                     </Pressable>
                 </View>
             </SafeAreaView>
@@ -1412,22 +1417,22 @@ export default function FileViewerScreen() {
 
     // ---------- Render ----------
     return (
-        <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-[#fff] dark:bg-[#0A0A0A]" edges={['top']}>
             {/* ===== Header ===== */}
-            <View className="flex-row items-center justify-between px-4 py-4 border-b border-[#2C2C2E]">
+            <View className="flex-row items-center justify-between px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#0A0A0A]">
                 {isAdjusting ? (
                     <Pressable
                         onPress={handleCancelAdjustments}
                         className="px-2 py-1"
                     >
-                        <Text className="text-[#9C9CA3] font-bold">Cancel</Text>
+                        <Text className="text-[#8E8E93] dark:text-[#9C9CA3] font-bold">Cancel</Text>
                     </Pressable>
                 ) : (
                     <Pressable
                         onPress={() => router.back()}
                         className="w-10 h-10 items-center justify-center"
                     >
-                        <HugeiconsArrowLeft01 />
+                        <HugeiconsArrowLeft01 color={themeTextColor} />
                     </Pressable>
                 )}
 
@@ -1436,7 +1441,7 @@ export default function FileViewerScreen() {
                     <View className="flex-1 flex-row items-center mx-2">
                         <TextInput
                             ref={renameInputRef}
-                            className="flex-1 text-white text-xl font-extrabold text-center border-b pb-1"
+                            className="flex-1 text-[#1C1C1E] dark:text-white text-xl font-extrabold text-center border-b pb-1"
                             style={{ borderBottomColor: accentColor, borderBottomWidth: 1 }}
                             value={renameText}
                             onChangeText={setRenameText}
@@ -1445,7 +1450,7 @@ export default function FileViewerScreen() {
                             autoFocus
                             selectTextOnFocus
                             returnKeyType="done"
-                            placeholderTextColor={Palette.textMuted}
+                            placeholderTextColor={isDark ? '#9C9CA3' : '#8E8E93'}
                         />
                         <Pressable
                             onPress={commitRename}
@@ -1476,7 +1481,7 @@ export default function FileViewerScreen() {
                         disabled={isAdjusting}
                     >
                         <Text
-                            className="text-white text-xl font-extrabold capitalize text-center flex-1"
+                            className="text-[#1C1C1E] dark:text-white text-xl font-extrabold capitalize text-center flex-1"
                             numberOfLines={1}
                             style={{ maxWidth: '65%' }}
                         >
@@ -1485,7 +1490,7 @@ export default function FileViewerScreen() {
                         {!isAdjusting && (
                             <View className="ml-2">
                                 <Svg width="14" height="14" viewBox="0 0 24 24">
-                                    <G fill="none" stroke="#9C9CA3" strokeLinejoin="round" strokeWidth="1.5">
+                                    <G fill="none" stroke={isDark ? '#9C9CA3' : '#8E8E93'} strokeLinejoin="round" strokeWidth="1.5">
                                         <Path d="M14.074 3.885c.745-.807 1.117-1.21 1.513-1.446a3.1 3.1 0 0 1 3.103-.047c.403.224.787.616 1.555 1.4c.768.785 1.152 1.178 1.37 1.589a3.29 3.29 0 0 1-.045 3.17c-.23.404-.625.785-1.416 1.546l-9.403 9.057c-1.498 1.443-2.247 2.164-3.183 2.53s-1.965.338-4.023.285l-.28-.008c-.626-.016-.94-.024-1.121-.231c-.183-.207-.158-.526-.108-1.164l.027-.346c.14-1.796.21-2.694.56-3.502s.956-1.463 2.166-2.774zM13 4l7 7" />
                                         <Path strokeLinecap="round" d="M14 22h8" />
                                     </G>
@@ -1501,14 +1506,14 @@ export default function FileViewerScreen() {
                         disabled={saving}
                         className="px-3 py-1"
                     >
-                        <Text style={{ color: saving ? Palette.textMuted : accentColor }} className="font-bold">Done</Text>
+                        <Text style={{ color: saving ? (isDark ? '#9C9CA3' : '#8E8E93') : accentColor }} className="font-bold">Done</Text>
                     </Pressable>
                 ) : (
                     <Pressable
                         onPress={handleShare}
                         className="w-10 h-10 items-center justify-center"
                     >
-                        <HugeiconsShare03 />
+                        <HugeiconsShare03 color={themeTextColor} />
                     </Pressable>
                 )}
             </View>
@@ -1628,17 +1633,17 @@ export default function FileViewerScreen() {
                                             />
                                         ) : failedPages.has(page) ? (
                                             <View className="flex-1 items-center justify-center">
-                                                <HugeIcon name="recents" size={16} color={Palette.textMuted} />
+                                                <HugeIcon name="recents" size={16} color={isDark ? '#9C9CA3' : '#8E8E93'} />
                                             </View>
                                         ) : (
                                             <View className="flex-1 items-center justify-center">
-                                                <ActivityIndicator size="small" color={Palette.textMuted} />
+                                                <ActivityIndicator size="small" color={isDark ? '#9C9CA3' : '#8E8E93'} />
                                             </View>
                                         )}
                                     </View>
                                     <Text
                                         className="text-[10px] font-bold mt-1"
-                                        style={{ color: isSelected ? accentColor : Palette.textMuted }}
+                                        style={{ color: isSelected ? accentColor : (isDark ? '#9C9CA3' : '#8E8E93') }}
                                     >
                                         {page}
                                     </Text>
@@ -1653,15 +1658,15 @@ export default function FileViewerScreen() {
             <View style={{ overflow: 'hidden' }}>
                 {isAdjusting ? (
                     /* ---------- ADVANCED ADJUSTMENT PANEL (Active Adjust) ---------- */
-                    <View className="border-t border-[#2C2C2E] bg-[#0A0A0A] px-4 pt-2 pb-14">
+                    <View className={`border-t border-[#E5E5EA] dark:border-[#2C2C2E]  px-4 pt-2 pb-14 ${isDark ? 'bg-[#0A0A0A]' : 'bg-[#F2F2F7]'}`}>
                         {/* Adjustment Mode Navigation tabs */}
-                        <View className="flex-row bg-[#1C1C1E] rounded-xl p-1 mb-4">
+                        <View className="flex-row bg-white dark:bg-[#1C1C1E] rounded-xl p-1 mb-4 border border-[#E5E5EA] dark:border-transparent">
                             <Pressable
                                 onPress={() => setAdjustTab('presets')}
                                 className="flex-1 p-2 rounded-lg items-center"
                                 style={{ backgroundColor: adjustTab === 'presets' ? accentColor : 'transparent' }}
                             >
-                                <Text className="text-sm font-bold" style={{ color: adjustTab === 'presets' ? Palette.white : Palette.textMuted }}>
+                                <Text className="text-sm font-bold" style={{ color: adjustTab === 'presets' ? '#FFFFFF' : (isDark ? '#9C9CA3' : '#8E8E93') }}>
                                     Quick Looks
                                 </Text>
                             </Pressable>
@@ -1670,7 +1675,7 @@ export default function FileViewerScreen() {
                                 className="flex-1 p-2 rounded-lg items-center"
                                 style={{ backgroundColor: adjustTab === 'sliders' ? accentColor : 'transparent' }}
                             >
-                                <Text className="text-sm font-bold" style={{ color: adjustTab === 'sliders' ? Palette.white : Palette.textMuted }}>
+                                <Text className="text-sm font-bold" style={{ color: adjustTab === 'sliders' ? '#FFFFFF' : (isDark ? '#9C9CA3' : '#8E8E93') }}>
                                     Fine Adjustments
                                 </Text>
                             </Pressable>
@@ -1688,14 +1693,14 @@ export default function FileViewerScreen() {
                                                 onPress={() => applyPreset(key)}
                                                 className="px-4 py-3 rounded-lg"
                                                 style={{
-                                                    backgroundColor: isActive ? accentColor : '#1C1C1E',
-                                                    borderColor: isActive ? accentColor : '#2C2C2E',
+                                                    backgroundColor: isActive ? accentColor : (isDark ? '#1C1C1E' : '#FFFFFF'),
+                                                    borderColor: isActive ? accentColor : (isDark ? '#2C2C2E' : '#E5E5EA'),
                                                     borderWidth: 1,
                                                 }}
                                             >
                                                 <Text
                                                     className="text-xs font-bold"
-                                                    style={{ color: isActive ? Palette.white : Palette.text }}
+                                                    style={{ color: isActive ? '#FFFFFF' : themeTextColor }}
                                                 >
                                                     {item.label}
                                                 </Text>
@@ -1983,11 +1988,11 @@ export default function FileViewerScreen() {
                 <View className="flex-1 justify-center items-center bg-black/80">
                     <View className="bg-[#1C1C1E] border border-white/10 rounded-2xl p-6 w-[80%] max-w-[300px] items-center shadow-2xl">
                         <ActivityIndicator size="large" color={accentColor} className="mb-4" />
-                        
+
                         <Text className="text-white font-black text-lg mb-1 text-center">
                             Saving Adjustments
                         </Text>
-                        
+
                         <Text className="text-gray-400 text-xs mb-4 text-center">
                             {file?.fileType === 'pdf'
                                 ? `Processing PDF pages...`
@@ -1996,11 +2001,11 @@ export default function FileViewerScreen() {
 
                         {/* Progress Bar Container */}
                         <View className="w-full bg-white/10 h-2 rounded-full overflow-hidden mb-2">
-                            <View 
-                                style={{ 
+                            <View
+                                style={{
                                     width: `${Math.round(saveProgress * 100)}%`,
-                                    backgroundColor: accentColor 
-                                }} 
+                                    backgroundColor: accentColor
+                                }}
                                 className="h-full rounded-full"
                             />
                         </View>
@@ -2038,7 +2043,7 @@ export default function FileViewerScreen() {
 
                     {/* Canvas Area */}
                     <View className="p-4 flex-1 w-full">
-                        <View 
+                        <View
                             className="flex-1 w-full bg-white rounded-2xl overflow-hidden relative shadow-lg"
                             style={{
                                 shadowColor: '#000',
@@ -2203,7 +2208,7 @@ export default function FileViewerScreen() {
 
                     {/* Text Input Area */}
                     <View className="p-4 flex-1 w-full justify-center">
-                        <View 
+                        <View
                             className="flex-1 w-full bg-[#1C1C1E] rounded-2xl overflow-hidden relative shadow-lg p-4"
                             style={{
                                 shadowColor: '#000',

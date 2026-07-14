@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/components/useColorScheme';
 import { Stack, useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
@@ -23,12 +24,12 @@ import { useSettingsStore } from '@/src/stores/settingsStore';
 import type { DeviceFile } from '@/src/types';
 
 // Custom Arrow Left Icon
-function HugeiconsArrowLeft01() {
+function HugeiconsArrowLeft01({ color }: { color?: string }) {
   return (
     <Svg width="28" height="28" viewBox="0 0 24 24">
       <Path
         fill="none"
-        stroke="#fff"
+        stroke={color || "#fff"}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.5"
@@ -54,6 +55,10 @@ function MetadataIcon() {
 }
 
 export default function MetadataViewerScreen() {
+  const activeTheme = useColorScheme();
+  const isDark = activeTheme === 'dark';
+  const textColor = isDark ? '#ffffff' : '#1C1C1E';
+
   const router = useRouter();
   const [file, setFile] = useState<{ name: string; uri: string } | null>(null);
   const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
@@ -152,21 +157,21 @@ export default function MetadataViewerScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-[#0A0A0A]" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* ===== Header ===== */}
-      <View className="flex-row items-center px-4 py-4 border-b border-[#2C2C2E]">
+      <View className="flex-row items-center px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#0A0A0A]">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center mr-2"
         >
-          <HugeiconsArrowLeft01 />
+          <HugeiconsArrowLeft01 color={textColor} />
         </Pressable>
 
         <Text
           style={{ fontFamily: 'RocaTwoBold' }}
-          className="text-white text-2xl font-black"
+          className="text-[#1C1C1E] dark:text-white text-2xl font-black"
         >
           Metadata Editor
         </Text>
@@ -181,10 +186,10 @@ export default function MetadataViewerScreen() {
             source={require('@/assets/images/add-file.png')}
             style={{ width: 40, height: 40 }}
           />
-          <Text className="text-white text-base font-extrabold mt-4 mb-2 text-center">
+          <Text className="text-[#1C1C1E] dark:text-white text-base font-extrabold mt-4 mb-2 text-center">
             Select PDF File
           </Text>
-          <Text className="text-[#9C9CA3] text-xs font-semibold text-center max-w-[260px] leading-relaxed">
+          <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs font-semibold text-center max-w-[260px] leading-relaxed">
             Tap anywhere to import a PDF document from your device
           </Text>
         </Pressable>
@@ -194,7 +199,7 @@ export default function MetadataViewerScreen() {
           contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >
-          <Text className="text-[#9C9CA3] text-sm mb-6 leading-relaxed">
+          <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-sm mb-6 leading-relaxed">
             View and modify the internal metadata attributes of any PDF document, such as author names, titles, creators, or index keywords.
           </Text>
 
@@ -207,7 +212,7 @@ export default function MetadataViewerScreen() {
                 {/* File Details (Borderless with Thumbnail) */}
                 <View className="flex-row items-center mb-5" style={{ gap: 12 }}>
                   <View
-                    className="rounded-lg overflow-hidden items-center justify-center bg-[#1C1C1E] border border-[#2C2C2E]"
+                    className="rounded-lg overflow-hidden items-center justify-center bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E]"
                     style={{ width: 44, height: 56 }}
                   >
                     {thumbnailUri ? (
@@ -222,18 +227,18 @@ export default function MetadataViewerScreen() {
                   </View>
 
                   <View className="flex-1" style={{ gap: 2 }}>
-                    <Text className="text-sm font-black text-white" numberOfLines={1}>
+                    <Text className="text-sm font-black text-[#1C1C1E] dark:text-white" numberOfLines={1}>
                       {file.name}
                     </Text>
-                    <Text className="text-[11px] font-bold text-[#9C9CA3]">
+                    <Text className="text-[11px] font-bold text-[#8E8E93] dark:text-[#9C9CA3]">
                       Size: {formatSize(fileSize)} · Pages: {pageCount} · PDF
                     </Text>
                   </View>
                 </View>
 
                 {/* Inputs Forms */}
-                <View className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-2xl p-5 mb-5">
-                  <Text className="text-xs font-black uppercase text-[#9C9CA3] tracking-wider mb-2 px-1">
+                <View className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-5 mb-5">
+                  <Text className="text-xs font-black uppercase text-[#8E8E93] dark:text-[#9C9CA3] tracking-wider mb-2 px-1">
                     Document Title
                   </Text>
                   <TextInput
@@ -242,10 +247,10 @@ export default function MetadataViewerScreen() {
                     placeholder="Enter document title"
                     placeholderTextColor="#5C5C61"
                     keyboardAppearance="dark"
-                    className="w-full bg-[#0A0A0A] border border-[#2C2C2E] rounded-xl px-4 py-3.5 text-white font-semibold text-sm focus:border-[#FF3B30] mb-4"
+                    className="w-full bg-white dark:bg-[#0A0A0A] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl px-4 py-3.5 text-[#1C1C1E] dark:text-white font-semibold text-sm focus:border-[#FF3B30] mb-4"
                   />
 
-                  <Text className="text-xs font-black uppercase text-[#9C9CA3] tracking-wider mb-2 px-1">
+                  <Text className="text-xs font-black uppercase text-[#8E8E93] dark:text-[#9C9CA3] tracking-wider mb-2 px-1">
                     Author
                   </Text>
                   <TextInput
@@ -254,10 +259,10 @@ export default function MetadataViewerScreen() {
                     placeholder="Enter author's name"
                     placeholderTextColor="#5C5C61"
                     keyboardAppearance="dark"
-                    className="w-full bg-[#0A0A0A] border border-[#2C2C2E] rounded-xl px-4 py-3.5 text-white font-semibold text-sm focus:border-[#FF3B30] mb-4"
+                    className="w-full bg-white dark:bg-[#0A0A0A] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl px-4 py-3.5 text-[#1C1C1E] dark:text-white font-semibold text-sm focus:border-[#FF3B30] mb-4"
                   />
 
-                  <Text className="text-xs font-black uppercase text-[#9C9CA3] tracking-wider mb-2 px-1">
+                  <Text className="text-xs font-black uppercase text-[#8E8E93] dark:text-[#9C9CA3] tracking-wider mb-2 px-1">
                     Subject
                   </Text>
                   <TextInput
@@ -266,10 +271,10 @@ export default function MetadataViewerScreen() {
                     placeholder="Enter document subject"
                     placeholderTextColor="#5C5C61"
                     keyboardAppearance="dark"
-                    className="w-full bg-[#0A0A0A] border border-[#2C2C2E] rounded-xl px-4 py-3.5 text-white font-semibold text-sm focus:border-[#FF3B30] mb-4"
+                    className="w-full bg-white dark:bg-[#0A0A0A] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl px-4 py-3.5 text-[#1C1C1E] dark:text-white font-semibold text-sm focus:border-[#FF3B30] mb-4"
                   />
 
-                  <Text className="text-xs font-black uppercase text-[#9C9CA3] tracking-wider mb-2 px-1">
+                  <Text className="text-xs font-black uppercase text-[#8E8E93] dark:text-[#9C9CA3] tracking-wider mb-2 px-1">
                     Creator
                   </Text>
                   <TextInput
@@ -278,10 +283,10 @@ export default function MetadataViewerScreen() {
                     placeholder="e.g. FreePDF App"
                     placeholderTextColor="#5C5C61"
                     keyboardAppearance="dark"
-                    className="w-full bg-[#0A0A0A] border border-[#2C2C2E] rounded-xl px-4 py-3.5 text-white font-semibold text-sm focus:border-[#FF3B30] mb-4"
+                    className="w-full bg-white dark:bg-[#0A0A0A] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl px-4 py-3.5 text-[#1C1C1E] dark:text-white font-semibold text-sm focus:border-[#FF3B30] mb-4"
                   />
 
-                  <Text className="text-xs font-black uppercase text-[#9C9CA3] tracking-wider mb-2 px-1">
+                  <Text className="text-xs font-black uppercase text-[#8E8E93] dark:text-[#9C9CA3] tracking-wider mb-2 px-1">
                     Producer
                   </Text>
                   <TextInput
@@ -290,16 +295,16 @@ export default function MetadataViewerScreen() {
                     placeholder="e.g. pdf-lib engine"
                     placeholderTextColor="#5C5C61"
                     keyboardAppearance="dark"
-                    className="w-full bg-[#0A0A0A] border border-[#2C2C2E] rounded-xl px-4 py-3.5 text-white font-semibold text-sm focus:border-[#FF3B30] mb-6"
+                    className="w-full bg-white dark:bg-[#0A0A0A] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl px-4 py-3.5 text-[#1C1C1E] dark:text-white font-semibold text-sm focus:border-[#FF3B30] mb-6"
                   />
 
                   {/* Actions */}
                   <View className="flex-row gap-3">
                     <Pressable
                       onPress={pickFile}
-                      className="flex-1 bg-[#1C1C1E] border border-[#2C2C2E] py-3.5 rounded-xl items-center active:bg-[#2C2C2E]"
+                      className="flex-1 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] py-3.5 rounded-xl items-center active:bg-[#E5E5EA] dark:bg-[#2C2C2E]"
                     >
-                      <Text className="text-white font-bold text-sm">
+                      <Text className="text-[#1C1C1E] dark:text-white font-bold text-sm">
                         Change File
                       </Text>
                     </Pressable>
@@ -322,7 +327,7 @@ export default function MetadataViewerScreen() {
 
                 {/* Success sharing block */}
                 {outputUri && (
-                  <View className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-2xl p-5 mt-4">
+                  <View className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-5 mt-4">
                     <View className="flex-row items-center mb-4">
                       <View className="w-8 h-8 rounded-full bg-green-500/20 items-center justify-center mr-3">
                         <Svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -335,11 +340,11 @@ export default function MetadataViewerScreen() {
                           />
                         </Svg>
                       </View>
-                      <Text className="text-white text-base font-bold">
+                      <Text className="text-[#1C1C1E] dark:text-white text-base font-bold">
                         Metadata Saved!
                       </Text>
                     </View>
-                    <Text className="text-[#9C9CA3] text-xs mb-5 px-1 leading-relaxed">
+                    <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs mb-5 px-1 leading-relaxed">
                       Your document has been re-saved with the updated metadata properties.
                     </Text>
 

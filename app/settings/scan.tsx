@@ -10,20 +10,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 
-import { Palette } from '@/constants/Colors';
+import { useColorScheme } from '@/components/useColorScheme';
 import {
   useScanSettingsStore,
-  type ScanResolution,
-  type ScanColorMode,
 } from '@/src/stores/scanSettingsStore';
 
 // Custom Arrow Left Icon
-export function HugeiconsArrowLeft01() {
+export function HugeiconsArrowLeft01({ color }: { color: string }) {
   return (
     <Svg width="28" height="28" viewBox="0 0 24 24">
       <Path
         fill="none"
-        stroke="#fff"
+        stroke={color || "#fff"}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.5"
@@ -46,23 +44,27 @@ export default function ScanSettingsScreen() {
   const autoBorderDetection = useScanSettingsStore((s) => s.autoBorderDetection);
   const setAutoBorderDetection = useScanSettingsStore((s) => s.setAutoBorderDetection);
 
+  const activeTheme = useColorScheme();
+  const isDark = activeTheme === 'dark';
+  const textColor = isDark ? '#ffffff' : '#1C1C1E';
+
   return (
-    <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]" edges={['top']}>
       {/* Configure Stack Screen options */}
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* ===== Header ===== */}
-      <View className="flex-row items-center px-4 py-4 border-b border-[#2C2C2E]">
+      <View className="flex-row items-center px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center mr-2"
         >
-          <HugeiconsArrowLeft01 />
+          <HugeiconsArrowLeft01 color={textColor} />
         </Pressable>
 
         <Text
           style={{ fontFamily: 'RocaTwoBold' }}
-          className="text-white text-2xl font-black"
+          className="text-[#1C1C1E] dark:text-white text-2xl font-black"
         >
           Scan Settings
         </Text>
@@ -73,20 +75,20 @@ export default function ScanSettingsScreen() {
         contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        <Text className="text-[#9C9CA3] text-sm mb-6 leading-relaxed">
+        <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-sm mb-6 leading-relaxed">
           Configure default behaviors and document optimization options for all scanner tools (Document, Receipt, and ID scanners).
         </Text>
 
         {/* 1. Resolution Selection */}
         <View className="mb-6">
-          <Text className="text-xs font-black uppercase text-[#9C9CA3] tracking-wider mb-3 px-1">
+          <Text className="text-xs font-black uppercase text-[#8E8E93] dark:text-[#9C9CA3] tracking-wider mb-3 px-1">
             Default Scan Resolution
           </Text>
-          <View className="bg-[#1C1C1E] rounded-2xl p-5">
-            <Text className="text-white text-base font-bold">
+          <View className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-5">
+            <Text className="text-[#1C1C1E] dark:text-white text-base font-bold">
               Resolution Quality
             </Text>
-            <Text className="text-[#9C9CA3] text-xs mt-1 mb-4 leading-relaxed">
+            <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs mt-1 mb-4 leading-relaxed">
               Higher resolutions create crisper PDFs but result in larger file sizes.
             </Text>
             <View className="flex-row gap-2.5">
@@ -104,14 +106,14 @@ export default function ScanSettingsScreen() {
 
         {/* 2. Color Mode Selection */}
         <View className="mb-6">
-          <Text className="text-xs font-black uppercase text-[#9C9CA3] tracking-wider mb-3 px-1">
+          <Text className="text-xs font-black uppercase text-[#8E8E93] dark:text-[#9C9CA3] tracking-wider mb-3 px-1">
             Default Color Mode
           </Text>
-          <View className="bg-[#1C1C1E] rounded-2xl p-5">
-            <Text className="text-white text-base font-bold">
+          <View className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-5">
+            <Text className="text-[#1C1C1E] dark:text-white text-base font-bold">
               Color Filter
             </Text>
-            <Text className="text-[#9C9CA3] text-xs mt-1 mb-4 leading-relaxed">
+            <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs mt-1 mb-4 leading-relaxed">
               Select the default filter applied to your scanned images.
             </Text>
             <View className="flex-row gap-2.5">
@@ -129,23 +131,23 @@ export default function ScanSettingsScreen() {
 
         {/* 3. Auto border detection */}
         <View className="mb-6">
-          <Text className="text-xs font-black uppercase text-[#9C9CA3] tracking-wider mb-3 px-1">
+          <Text className="text-xs font-black uppercase text-[#8E8E93] dark:text-[#9C9CA3] tracking-wider mb-3 px-1">
             Edge Detection
           </Text>
-          <View className="bg-[#1C1C1E] rounded-2xl overflow-hidden">
+          <View className="bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden">
             <View className="flex-row items-center justify-between px-5 py-4">
               <View className="flex-1 mr-4">
-                <Text className="text-base font-bold text-white">
+                <Text className="text-base font-bold text-[#1C1C1E] dark:text-white">
                   Auto-Border Detection
                 </Text>
-                <Text className="text-[#9C9CA3] text-xs mt-0.5 leading-relaxed">
+                <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs mt-0.5 leading-relaxed">
                   Automatically trace and crop document borders using the camera scanner.
                 </Text>
               </View>
               <Switch
                 value={autoBorderDetection}
                 onValueChange={setAutoBorderDetection}
-                trackColor={{ false: '#3A3A3C', true: '#FF3B30' }}
+                trackColor={{ false: isDark ? '#3A3A3C' : '#E5E5EA', true: '#FF3B30' }}
                 thumbColor="#FFFFFF"
               />
             </View>
@@ -172,12 +174,12 @@ function PressableButton({
       className={`flex-1 py-3.5 rounded-xl items-center justify-center border ${
         active
           ? 'bg-[#FF3B30] border-[#FF3B30]'
-          : 'bg-[#0A0A0A] border-[#2C2C2E] active:bg-[#161618]'
+          : 'bg-[#F2F2F7] dark:bg-[#0A0A0A] border-[#E5E5EA] dark:border-[#2C2C2E] active:bg-[#E5E5EA] dark:active:bg-[#161618]'
       }`}
     >
       <Text
         className={`font-extrabold text-sm ${
-          active ? 'text-white' : 'text-[#9C9CA3]'
+          active ? 'text-white' : 'text-[#8E8E93] dark:text-[#9C9CA3]'
         }`}
       >
         {label}

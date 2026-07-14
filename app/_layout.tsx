@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef } from 'react';
 import 'react-native-reanimated';
 import { PostHogProvider } from 'posthog-react-native';
+import { useColorScheme as useNativeWindColorScheme } from 'nativewind';
 
 import { DrawerMenu } from '@/components/DrawerMenu';
 import { useOTAUpdates } from '@/hooks/useOTAUpdates';
@@ -51,6 +52,10 @@ function RootLayoutNav() {
   const loadSettings = useSettingsStore((s) => s.load);
   const loadFiles = useFilesStore((s) => s.loadAll);
   const loadOps = useOperationStore((s) => s.loadHistory);
+  const themeSetting = useSettingsStore((s) => s.theme);
+  const isLoaded = useSettingsStore((s) => s.isLoaded);
+  const { setColorScheme } = useNativeWindColorScheme();
+
   const pathname = usePathname();
   const params = useGlobalSearchParams();
   const previousPathname = useRef<string | undefined>(undefined);
@@ -62,6 +67,13 @@ function RootLayoutNav() {
     loadFiles();
     loadOps();
   }, []);
+
+  useEffect(() => {
+    if (isLoaded && themeSetting) {
+      setColorScheme(themeSetting);
+    }
+  }, [isLoaded, themeSetting, setColorScheme]);
+
 
   useEffect(() => {
     if (previousPathname.current !== pathname) {

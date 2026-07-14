@@ -35,16 +35,16 @@ export default function FavoritesScreen() {
   };
 
   return (
-    <SafeAreaView className='flex-1 bg-[#0A0A0A]' edges={['top']}>
-      <View className="flex-1 bg-[#0A0A0A]">
+    <SafeAreaView className='flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]' edges={['top']}>
+      <View className="flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]">
         {/* Custom Header */}
         <View className="px-6 pt-8 pb-4">
-          <Text className="text-3xl font-black text-white tracking-tight" style={{
+          <Text className="text-3xl font-black text-[#1C1C1E] dark:text-white tracking-tight" style={{
             fontFamily: "RocaTwoBold"
           }}>
             Favorites
           </Text>
-          <Text className="text-xs font-bold text-[#9C9CA3] mt-1 ml-0.5">
+          <Text className="text-xs font-bold text-[#8E8E93] dark:text-[#9C9CA3] mt-1 ml-0.5">
             {favorites.length} favorited file{favorites.length !== 1 ? 's' : ''}
           </Text>
         </View>
@@ -63,13 +63,13 @@ export default function FavoritesScreen() {
           }
           ListEmptyComponent={
             <View className="items-center py-16">
-              <View className="w-20 h-20 bg-[#1C1C1E] rounded-3xl items-center justify-center mb-4">
+              <View className="w-20 h-20 bg-white dark:bg-[#1C1C1E] rounded-3xl items-center justify-center mb-4 border border-[#E5E5EA] dark:border-transparent">
                 <HugeIcon name="rate" size={36} color="#FF3B30" />
               </View>
-              <Text className="text-white text-lg font-black">
+              <Text className="text-[#1C1C1E] dark:text-white text-lg font-black">
                 No favorites yet
               </Text>
-              <Text className="text-[#9C9CA3] mt-1 text-center px-8 font-medium text-xs">
+              <Text className="text-[#8E8E93] dark:text-[#9C9CA3] mt-1 text-center px-8 font-medium text-xs">
                 Tap the star icon on any file to add it to your favorites
               </Text>
             </View>

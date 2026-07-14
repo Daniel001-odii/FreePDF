@@ -5,6 +5,7 @@ import { HugeIcon } from '@/components/HugeIcon';
 import { useFilesStore } from '@/src/stores/filesStore';
 import type { DeviceFile } from '@/src/types';
 import Svg, { G, Path } from 'react-native-svg';
+import { useColorScheme } from '@/components/useColorScheme';
 
 function formatSize(bytes: number) {
     if (bytes < 1024) return `${bytes} B`;
@@ -45,11 +46,12 @@ function getFileIcon(fileType: string) {
 }
 
 function BookmarkIcon({ filled }: { filled: boolean }) {
+    const isDark = useColorScheme() === 'dark';
     return (
         <Svg width="18" height="18" viewBox="0 0 24 24">
             <Path
                 fill={filled ? '#FF3B30' : 'none'}
-                stroke={filled ? '#FF3B30' : '#9C9CA3'}
+                stroke={filled ? '#FF3B30' : (isDark ? '#9C9CA3' : '#8E8E93')}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="1.5"
@@ -60,9 +62,10 @@ function BookmarkIcon({ filled }: { filled: boolean }) {
 }
 
 function MoreIcon() {
+    const isDark = useColorScheme() === 'dark';
     return (
         <Svg width="18" height="18" viewBox="0 0 24 24">
-            <G fill="none" stroke="#9C9CA3" strokeWidth="1.5">
+            <G fill="none" stroke={isDark ? '#9C9CA3' : '#8E8E93'} strokeWidth="1.5">
                 <Path d="M12 3a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" />
                 <Path d="M12 10.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" />
                 <Path d="M12 18a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" />
@@ -82,13 +85,15 @@ export default function FileCard({
 }) {
     const router = useRouter();
     const toggleFav = useFilesStore((s) => s.toggleFavorite);
+    const isDark = useColorScheme() === 'dark';
+    const thumbBg = isDark ? '#0A0A0A' : '#F2F2F7';
 
     // ---------- Grid mode (compact card) ----------
     if (displayMode === 'grid') {
         return (
             <Pressable
                 onPress={() => router.push(`/file-viewer/${file.id}` as any)}
-                className="flex-1 bg-[#1C1C1E] border border-[#2C2C2E] rounded-2xl p-3 items-center active:opacity-80"
+                className="flex-1 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-3 items-center active:opacity-80"
                 style={{ gap: 6 }}
             >
                 <View
@@ -96,7 +101,7 @@ export default function FileCard({
                     style={{
                         width: '100%',
                         height: 72,
-                        backgroundColor: '#0A0A0A',
+                        backgroundColor: thumbBg,
                     }}
                 >
                     {(file.fileType === 'image' || file.fileType === 'pdf') && file.thumbnail ? (
@@ -110,7 +115,7 @@ export default function FileCard({
                     )}
                 </View>
                 <Text
-                    className="text-xs font-black text-white text-center"
+                    className="text-xs font-black text-[#1C1C1E] dark:text-white text-center"
                     numberOfLines={2}
                 >
                     {file.name}
@@ -132,7 +137,7 @@ export default function FileCard({
                 style={{
                     width: 44,
                     height: 56,
-                    backgroundColor: '#0A0A0A',
+                    backgroundColor: thumbBg,
                 }}
             >
                 {(file.fileType === 'image' || file.fileType === 'pdf') && file.thumbnail ? (
@@ -148,10 +153,10 @@ export default function FileCard({
 
             {/* Metadata */}
             <View className="flex-1" style={{ gap: 2 }}>
-                <Text className="text-sm font-black text-white" numberOfLines={1}>
+                <Text className="text-sm font-black text-[#1C1C1E] dark:text-white" numberOfLines={1}>
                     {file.name}
                 </Text>
-                <Text className="text-[11px] font-bold text-[#9C9CA3]">
+                <Text className="text-[11px] font-bold text-[#8E8E93] dark:text-[#9C9CA3]">
                     {formatSize(file.size)} · {file.fileType.charAt(0).toUpperCase() + file.fileType.slice(1)} · {formatRelativeTime(file.modifiedAt)}
                 </Text>
             </View>

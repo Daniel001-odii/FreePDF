@@ -14,6 +14,7 @@ import {
 import { HugeIcon } from '@/components/HugeIcon';
 import { Palette } from '@/constants/Colors';
 import { getFileById, insertFile } from '@/src/db/repository';
+import { useColorScheme } from '@/components/useColorScheme';
 import { loadPDF, reorderPages, rotatePDFPages } from '@/src/services/pdfService';
 import type { DeviceFile } from '@/src/types';
 import {
@@ -35,10 +36,10 @@ import Svg, { Path } from 'react-native-svg';
 // Inline SVG icons
 // -----------------------------------------------------------
 
-export function HugeiconsArrowLeft01() {
+export function HugeiconsArrowLeft01({ color }: { color?: string }) {
     return (
         <Svg width="28" height="28" viewBox="0 0 24 24">
-            <Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 6s-6 4.419-6 6s6 6 6 6" />
+            <Path fill="none" stroke={color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 6s-6 4.419-6 6s6 6 6 6" />
         </Svg>
     );
 }
@@ -247,6 +248,10 @@ function DraggablePageCell({
 
 export default function PagesScreen() {
     const router = useRouter();
+    const activeTheme = useColorScheme();
+    const isDark = activeTheme === 'dark';
+    const textColor = isDark ? '#ffffff' : '#1C1C1E';
+
     const { id } = useGlobalSearchParams<{ id: string }>();
     const [file, setFile] = useState<DeviceFile | null>(null);
     const [totalPages, setTotalPages] = useState(0);
@@ -473,7 +478,7 @@ export default function PagesScreen() {
     // ---------- Loading ----------
     if (loading) {
         return (
-            <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+            <SafeAreaView className="flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]" edges={['top']}>
                 <View className="flex-1 items-center justify-center">
                     <ActivityIndicator size="large" color={Palette.accent} />
                 </View>
@@ -484,17 +489,17 @@ export default function PagesScreen() {
     // ---------- Not Found ----------
     if (!file) {
         return (
-            <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+            <SafeAreaView className="flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]" edges={['top']}>
                 <View className="flex-1 items-center justify-center px-6">
-                    <HugeIcon name="recents" size={48} color={Palette.textMuted} />
-                    <Text className="text-[#9C9CA3] mt-4 text-base font-bold text-center">
+                    <HugeIcon name="recents" size={48} color={isDark ? '#9C9CA3' : '#8E8E93'} />
+                    <Text className="text-[#8E8E93] dark:text-[#9C9CA3] mt-4 text-base font-bold text-center">
                         File not found.
                     </Text>
                     <Pressable
                         onPress={() => router.back()}
-                        className="mt-6 bg-[#1C1C1E] px-6 py-3 rounded-xl"
+                        className="mt-6 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-transparent px-6 py-3 rounded-xl"
                     >
-                        <Text className="text-white font-bold">Go Back</Text>
+                        <Text className="text-[#1C1C1E] dark:text-white font-bold">Go Back</Text>
                     </Pressable>
                 </View>
             </SafeAreaView>
@@ -502,18 +507,18 @@ export default function PagesScreen() {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-[#F2F2F7] dark:bg-[#0A0A0A]" edges={['top']}>
             {/* ===== Header ===== */}
-            <View className="flex-row items-center justify-between px-4 py-4 border-b border-[#2C2C2E]">
+            <View className="flex-row items-center justify-between px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#0A0A0A]">
                 <Pressable
                     onPress={() => router.back()}
                     className="w-10 h-10 items-center justify-center"
                 >
-                    <HugeiconsArrowLeft01 />
+                    <HugeiconsArrowLeft01 color={textColor} />
                 </Pressable>
 
                 <Text
-                    className="flex-1 text-base font-extrabold text-white text-xl capitalize text-center mx-2"
+                    className="flex-1 text-base font-extrabold text-[#1C1C1E] dark:text-white text-xl capitalize text-center mx-2"
                     numberOfLines={1}
                 >
                     {file.name}
@@ -548,7 +553,7 @@ export default function PagesScreen() {
             {/* ===== Drag Hint ===== */}
             {pagesOrder.length > 0 && !isSelectMode && (
                 <View className="px-4 py-2">
-                    <Text className="text-[#9C9CA3] text-xs font-bold text-center">
+                    <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs font-bold text-center">
                         Long-press a page to drag and reorder
                     </Text>
                 </View>
@@ -556,12 +561,12 @@ export default function PagesScreen() {
 
             {/* ===== Selection Actions Sub-toolbar ===== */}
             {isSelectMode && (
-                <View className="flex-row justify-between items-center bg-[#161618] border-b border-[#2C2C2E] px-6 py-3">
+                <View className="flex-row justify-between items-center bg-white dark:bg-[#161618] border-b border-[#E5E5EA] dark:border-[#2C2C2E] px-6 py-3">
                     <Pressable
                         onPress={handleToggleSelectAll}
                         className="active:opacity-80 py-2 pr-4"
                     >
-                        <Text className="text-white text-xs font-bold">
+                        <Text className="text-[#1C1C1E] dark:text-white text-xs font-bold">
                             {selectedPages.size === pagesOrder.length ? 'Deselect All' : 'Select All'}
                         </Text>
                     </Pressable>
@@ -570,9 +575,9 @@ export default function PagesScreen() {
                         <Pressable
                             onPress={handleRotateSelected}
                             disabled={selectedPages.size === 0}
-                            className="px-4 py-2 bg-[#1C1C1E] border border-[#2C2C2E] rounded-lg active:opacity-80 disabled:opacity-40"
+                            className="px-4 py-2 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-lg active:opacity-80 disabled:opacity-40"
                         >
-                            <Text className="text-white text-xs font-bold">Rotate</Text>
+                            <Text className="text-[#1C1C1E] dark:text-white text-xs font-bold">Rotate</Text>
                         </Pressable>
 
                         <Pressable
@@ -632,12 +637,12 @@ export default function PagesScreen() {
             </ScrollView>
 
             {/* ===== Reset & Save Footer (Bottom Bar) ===== */}
-            <View className="border-t border-[#2C2C2E] px-4 pt-4 pb-12 flex-row gap-4">
+            <View className="border-t border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#0A0A0A] px-4 pt-4 pb-12 flex-row gap-4">
                 <Pressable
                     onPress={handleReset}
-                    className="flex-1 bg-[#1C1C1E] py-4 rounded-2xl items-center active:opacity-80 border border-[#2C2C2E]"
+                    className="flex-1 bg-[#F2F2F7] dark:bg-[#1C1C1E] py-4 rounded-2xl items-center active:opacity-80 border border-[#E5E5EA] dark:border-[#2C2C2E]"
                 >
-                    <Text className="text-[#9C9CA3] text-base font-bold">Reset</Text>
+                    <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-base font-bold">Reset</Text>
                 </Pressable>
 
                 <Pressable

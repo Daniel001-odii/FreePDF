@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/components/useColorScheme';
 import { Stack, useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
@@ -23,12 +24,12 @@ import type { DeviceFile } from '@/src/types';
 import { usePostHog } from 'posthog-react-native';
 
 // Custom Arrow Left Icon
-function HugeiconsArrowLeft01() {
+function HugeiconsArrowLeft01({ color }: { color?: string }) {
   return (
     <Svg width="28" height="28" viewBox="0 0 24 24">
       <Path
         fill="none"
-        stroke="#fff"
+        stroke={color || "#fff"}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.5"
@@ -54,6 +55,10 @@ function CompressIcon() {
 }
 
 export default function CompressPDFScreen() {
+  const activeTheme = useColorScheme();
+  const isDark = activeTheme === 'dark';
+  const textColor = isDark ? '#ffffff' : '#1C1C1E';
+
   const router = useRouter();
   const posthog = usePostHog();
   const [file, setFile] = useState<{ name: string; uri: string; size?: number } | null>(null);
@@ -128,22 +133,22 @@ export default function CompressPDFScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-[#0A0A0A]" edges={['top']}>
       {/* Hide Expo default router header */}
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* ===== Header ===== */}
-      <View className="flex-row items-center px-4 py-4 border-b border-[#2C2C2E]">
+      <View className="flex-row items-center px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#0A0A0A]">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center mr-2"
         >
-          <HugeiconsArrowLeft01 />
+          <HugeiconsArrowLeft01 color={textColor} />
         </Pressable>
 
         <Text
           style={{ fontFamily: 'RocaTwoBold' }}
-          className="text-white text-2xl font-black"
+          className="text-[#1C1C1E] dark:text-white text-2xl font-black"
         >
           Compress PDF
         </Text>
@@ -158,10 +163,10 @@ export default function CompressPDFScreen() {
             source={require('@/assets/images/add-file.png')}
             style={{ width: 40, height: 40 }}
           />
-          <Text className="text-white text-base font-extrabold mt-4 mb-2 text-center">
+          <Text className="text-[#1C1C1E] dark:text-white text-base font-extrabold mt-4 mb-2 text-center">
             Select PDF File
           </Text>
-          <Text className="text-[#9C9CA3] text-xs font-semibold text-center max-w-[260px] leading-relaxed">
+          <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs font-semibold text-center max-w-[260px] leading-relaxed">
             Tap anywhere to import a PDF document from your device
           </Text>
         </Pressable>
@@ -171,7 +176,7 @@ export default function CompressPDFScreen() {
           contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >
-          <Text className="text-[#9C9CA3] text-sm mb-6 leading-relaxed">
+          <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-sm mb-6 leading-relaxed">
             Reduce PDF file size by stripping metadata and optimizing document layouts, while maintaining standard text and image visual clarity.
           </Text>
 
@@ -179,7 +184,7 @@ export default function CompressPDFScreen() {
           <View className="mb-6">
             <View className="flex-row items-center mb-5" style={{ gap: 12 }}>
               <View
-                className="rounded-lg overflow-hidden items-center justify-center bg-[#1c1c1e] border border-[#2C2C2E]"
+                className="rounded-lg overflow-hidden items-center justify-center bg-white dark:bg-[#1c1c1e] border border-[#E5E5EA] dark:border-[#2C2C2E]"
                 style={{ width: 44, height: 56 }}
               >
                 {thumbnailUri ? (
@@ -194,10 +199,10 @@ export default function CompressPDFScreen() {
               </View>
 
               <View className="flex-1" style={{ gap: 2 }}>
-                <Text className="text-sm font-black text-white" numberOfLines={1}>
+                <Text className="text-sm font-black text-[#1C1C1E] dark:text-white" numberOfLines={1}>
                   {file.name}
                 </Text>
-                <Text className="text-[11px] font-bold text-[#9C9CA3]">
+                <Text className="text-[11px] font-bold text-[#8E8E93] dark:text-[#9C9CA3]">
                   {formatSize(file.size)} · PDF
                 </Text>
               </View>
@@ -206,9 +211,9 @@ export default function CompressPDFScreen() {
             <View className="flex-row gap-3">
               <Pressable
                 onPress={pickFile}
-                className="flex-1 bg-[#1C1C1E] border border-[#2C2C2E] py-3.5 rounded-xl items-center active:bg-[#2C2C2E]"
+                className="flex-1 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] py-3.5 rounded-xl items-center active:bg-[#E5E5EA] dark:bg-[#2C2C2E]"
               >
-                <Text className="text-white font-bold text-sm">
+                <Text className="text-[#1C1C1E] dark:text-white font-bold text-sm">
                   Change File
                 </Text>
               </Pressable>
@@ -231,7 +236,7 @@ export default function CompressPDFScreen() {
 
           {/* Results Info */}
           {outputUri && (
-            <View className="bg-[#1C1C1E] border border-[#2C2C2E] rounded-2xl p-5 mt-4">
+            <View className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-5 mt-4">
               <View className="flex-row items-center mb-4">
                 <View className="w-8 h-8 rounded-full bg-green-500/20 items-center justify-center mr-3">
                   <Svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -244,11 +249,11 @@ export default function CompressPDFScreen() {
                     />
                   </Svg>
                 </View>
-                <Text className="text-white text-base font-bold">
+                <Text className="text-[#1C1C1E] dark:text-white text-base font-bold">
                   Compression Complete!
                 </Text>
               </View>
-              <Text className="text-[#9C9CA3] text-xs mb-5 px-1 leading-relaxed">
+              <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs mb-5 px-1 leading-relaxed">
                 Your PDF has been successfully processed and optimized.
               </Text>
 

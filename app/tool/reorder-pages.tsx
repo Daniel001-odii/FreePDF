@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/components/useColorScheme';
 import { Stack, useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
@@ -22,12 +23,12 @@ import { useSettingsStore } from '@/src/stores/settingsStore';
 import type { DeviceFile } from '@/src/types';
 
 // Custom Arrow Left Icon
-function HugeiconsArrowLeft01() {
+function HugeiconsArrowLeft01({ color }: { color?: string }) {
   return (
     <Svg width="28" height="28" viewBox="0 0 24 24">
       <Path
         fill="none"
-        stroke="#fff"
+        stroke={color || "#fff"}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.5"
@@ -72,7 +73,7 @@ function ArrowLeftIcon() {
     <Svg width="14" height="14" viewBox="0 0 24 24" fill="none">
       <Path
         d="M15 19L8 12L15 5"
-        stroke="#FFFFFF"
+        stroke={color || "#fff"}
         strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -87,7 +88,7 @@ function ArrowRightIcon() {
     <Svg width="14" height="14" viewBox="0 0 24 24" fill="none">
       <Path
         d="M9 5L16 12L9 19"
-        stroke="#FFFFFF"
+        stroke={color || "#fff"}
         strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -112,6 +113,10 @@ function TrashIcon() {
 }
 
 export default function ReorderPagesScreen() {
+  const activeTheme = useColorScheme();
+  const isDark = activeTheme === 'dark';
+  const textColor = isDark ? '#ffffff' : '#1C1C1E';
+
   const router = useRouter();
   const [file, setFile] = useState<{ name: string; uri: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -247,21 +252,21 @@ export default function ReorderPagesScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-[#0A0A0A]" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* ===== Header ===== */}
-      <View className="flex-row items-center px-4 py-4 border-b border-[#2C2C2E]">
+      <View className="flex-row items-center px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#0A0A0A]">
         <Pressable
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center mr-2"
         >
-          <HugeiconsArrowLeft01 />
+          <HugeiconsArrowLeft01 color={textColor} />
         </Pressable>
 
         <Text
           style={{ fontFamily: 'RocaTwoBold' }}
-          className="text-white text-2xl font-black"
+          className="text-[#1C1C1E] dark:text-white text-2xl font-black"
         >
           Reorder Pages
         </Text>
@@ -276,10 +281,10 @@ export default function ReorderPagesScreen() {
             source={require('@/assets/images/add-file.png')}
             style={{ width: 40, height: 40 }}
           />
-          <Text className="text-white text-base font-extrabold mt-4 mb-2 text-center">
+          <Text className="text-[#1C1C1E] dark:text-white text-base font-extrabold mt-4 mb-2 text-center">
             Select PDF File
           </Text>
-          <Text className="text-[#9C9CA3] text-xs font-semibold text-center max-w-[260px] leading-relaxed">
+          <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs font-semibold text-center max-w-[260px] leading-relaxed">
             Tap anywhere to import a PDF document from your device
           </Text>
         </Pressable>
@@ -289,7 +294,7 @@ export default function ReorderPagesScreen() {
           {loading ? (
             <View className="flex-1 items-center justify-center">
               <ActivityIndicator size="large" color="#FF3B30" />
-              <Text className="text-[#9C9CA3] text-sm mt-3 font-semibold">
+              <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-sm mt-3 font-semibold">
                 Loading document pages...
               </Text>
             </View>
@@ -305,9 +310,9 @@ export default function ReorderPagesScreen() {
                 renderItem={({ item: originalIndex, index }) => {
                   const thumbUri = thumbnails[originalIndex];
                   return (
-                    <View className="flex-1 bg-[#1C1C1E] border border-[#2C2C2E] rounded-2xl p-2 mb-3 items-center relative overflow-hidden">
+                    <View className="flex-1 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 mb-3 items-center relative overflow-hidden">
                       {/* Image Preview */}
-                      <View className="w-full aspect-[3/4] bg-[#0A0A0A] rounded-xl overflow-hidden items-center justify-center mb-2">
+                      <View className="w-full aspect-[3/4] bg-white dark:bg-[#0A0A0A] rounded-xl overflow-hidden items-center justify-center mb-2">
                         {thumbUri ? (
                           <Image
                             source={{ uri: thumbUri }}
@@ -320,7 +325,7 @@ export default function ReorderPagesScreen() {
                       </View>
 
                       {/* Info Row */}
-                      <Text className="text-[#9C9CA3] text-[10px] font-black uppercase mb-2">
+                      <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-[10px] font-black uppercase mb-2">
                         Page {index + 1}
                       </Text>
 
@@ -329,7 +334,7 @@ export default function ReorderPagesScreen() {
                         <Pressable
                           onPress={() => moveLeft(index)}
                           disabled={index === 0}
-                          className={`w-6 h-6 items-center justify-center rounded-lg bg-[#0A0A0A] border border-[#2C2C2E] ${
+                          className={`w-6 h-6 items-center justify-center rounded-lg bg-white dark:bg-[#0A0A0A] border border-[#E5E5EA] dark:border-[#2C2C2E] ${
                             index === 0 ? 'opacity-20' : 'active:bg-[#161618]'
                           }`}
                         >
@@ -346,7 +351,7 @@ export default function ReorderPagesScreen() {
                         <Pressable
                           onPress={() => moveRight(index)}
                           disabled={index === pageOrder.length - 1}
-                          className={`w-6 h-6 items-center justify-center rounded-lg bg-[#0A0A0A] border border-[#2C2C2E] ${
+                          className={`w-6 h-6 items-center justify-center rounded-lg bg-white dark:bg-[#0A0A0A] border border-[#E5E5EA] dark:border-[#2C2C2E] ${
                             index === pageOrder.length - 1 ? 'opacity-20' : 'active:bg-[#161618]'
                           }`}
                         >
@@ -359,7 +364,7 @@ export default function ReorderPagesScreen() {
               />
 
               {/* Save/Share Tray */}
-              <View className="absolute bottom-0 left-0 right-0 p-5 bg-[#0A0A0A]/95 border-t border-[#2C2C2E] flex-row gap-3">
+              <View className="absolute bottom-0 left-0 right-0 p-5 bg-white dark:bg-[#0A0A0A]/95 border-t border-[#E5E5EA] dark:border-[#2C2C2E] flex-row gap-3">
                 {outputUri ? (
                   <Pressable
                     onPress={() => Sharing.shareAsync(outputUri)}
@@ -373,9 +378,9 @@ export default function ReorderPagesScreen() {
                   <>
                     <Pressable
                       onPress={pickFile}
-                      className="flex-1 bg-[#1C1C1E] border border-[#2C2C2E] py-4 rounded-2xl items-center justify-center active:bg-[#2C2C2E]"
+                      className="flex-1 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] py-4 rounded-2xl items-center justify-center active:bg-[#E5E5EA] dark:bg-[#2C2C2E]"
                     >
-                      <Text className="text-white font-bold text-base">
+                      <Text className="text-[#1C1C1E] dark:text-white font-bold text-base">
                         Change File
                       </Text>
                     </Pressable>

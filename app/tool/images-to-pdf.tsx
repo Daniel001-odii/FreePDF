@@ -16,6 +16,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useColorScheme } from '@/components/useColorScheme';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -48,10 +49,10 @@ interface ImageItem {
 }
 
 // Icons
-export function HugeiconsArrowLeft01() {
+export function HugeiconsArrowLeft01({ color }: { color?: string }) {
     return (
         <Svg width="28" height="28" viewBox="0 0 24 24">
-            <Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 6s-6 4.419-6 6s6 6 6 6" />
+            <Path fill="none" stroke={color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 6s-6 4.419-6 6s6 6 6 6" />
         </Svg>
     );
 }
@@ -229,7 +230,7 @@ function DraggableImageCell({
                             >
                                 {isSelected && (
                                     <Svg width="12" height="12" viewBox="0 0 24 24">
-                                        <Path fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="m5 14l3.5 3.5L19 6.5" />
+                                        <Path fill="none" stroke={color || "#fff"} strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="m5 14l3.5 3.5L19 6.5" />
                                     </Svg>
                                 )}
                             </View>
@@ -247,7 +248,7 @@ function DraggableImageCell({
                                 paddingVertical: 2,
                             }}
                         >
-                            <Text className="text-white text-[10px] font-bold">
+                            <Text className="text-[#1C1C1E] dark:text-white text-[10px] font-bold">
                                 {index + 1}
                             </Text>
                         </View>
@@ -259,6 +260,10 @@ function DraggableImageCell({
 }
 
 export default function ImagesToPDFScreen() {
+  const activeTheme = useColorScheme();
+  const isDark = activeTheme === 'dark';
+  const textColor = isDark ? '#ffffff' : '#1C1C1E';
+
   const router = useRouter();
   const posthog = usePostHog();
   const params = useLocalSearchParams<{ images?: string }>();
@@ -501,22 +506,22 @@ export default function ImagesToPDFScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0A0A0A]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-[#0A0A0A]" edges={['top']}>
       {/* Hide default navigation bar, we render a custom matching layout header */}
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* ===== Header (Matches app/file-viewer/pages.tsx) ===== */}
-      <View className="flex-row items-center justify-between px-4 py-4 border-b border-[#2C2C2E]">
+      <View className="flex-row items-center justify-between px-4 py-4 border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#0A0A0A]">
           <Pressable
               onPress={() => router.back()}
               className="w-10 h-10 items-center justify-center"
           >
-              <HugeiconsArrowLeft01 />
+              <HugeiconsArrowLeft01 color={textColor} />
           </Pressable>
 
           <Text
               style={{ fontFamily: 'RocaTwoBold' }}
-              className="flex-1 text-base text-white text-xl text-center mx-2"
+              className="flex-1 text-base text-[#1C1C1E] dark:text-white text-xl text-center mx-2"
               numberOfLines={1}
           >
               Images to PDF
@@ -544,13 +549,13 @@ export default function ImagesToPDFScreen() {
         {imageItems.length === 0 ? (
           /* Empty State */
           <View className="flex-1 items-center justify-center px-6">
-            <View className="w-20 h-20 bg-[#1C1C1E] rounded-3xl items-center justify-center mb-6">
+            <View className="w-20 h-20 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-transparent rounded-3xl items-center justify-center mb-6">
               <ImageIcon />
             </View>
-            <Text className="text-white text-xl font-black text-center mb-2">
+            <Text className="text-[#1C1C1E] dark:text-white text-xl font-black text-center mb-2">
               No images selected
             </Text>
-            <Text className="text-[#9C9CA3] text-center mb-8 px-6 font-medium text-xs">
+            <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-center mb-8 px-6 font-medium text-xs">
               Select one or more images from your photo gallery to compile into a single PDF document.
             </Text>
             <Pressable
@@ -568,7 +573,7 @@ export default function ImagesToPDFScreen() {
             {/* ===== Drag Hint ===== */}
             {!isSelectMode && (
                 <View className="px-4 py-2 mt-1">
-                    <Text className="text-[#9C9CA3] text-xs font-bold text-center">
+                    <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs font-bold text-center">
                         Long-press a page to drag and reorder
                     </Text>
                 </View>
@@ -576,12 +581,12 @@ export default function ImagesToPDFScreen() {
 
             {/* ===== Selection Actions Sub-toolbar ===== */}
             {isSelectMode && (
-                <View className="flex-row justify-between items-center bg-[#161618] border-b border-[#2C2C2E] px-6 py-3">
+                <View className="flex-row justify-between items-center bg-[#161618] border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#0A0A0A] px-6 py-3">
                     <Pressable
                         onPress={handleToggleSelectAll}
                         className="active:opacity-80 py-2 pr-4"
                     >
-                        <Text className="text-white text-xs font-bold">
+                        <Text className="text-[#1C1C1E] dark:text-white text-xs font-bold">
                             {selectedIds.size === imageItems.length ? 'Deselect All' : 'Select All'}
                         </Text>
                     </Pressable>
@@ -630,10 +635,10 @@ export default function ImagesToPDFScreen() {
             </ScrollView>
 
             {/* Reset & Save Footer (Bottom Bar) */}
-            <View className="border-t border-[#2C2C2E] px-4 pt-4 pb-12 gap-4 bg-[#0A0A0A]">
+            <View className="border-t border-[#E5E5EA] dark:border-[#2C2C2E] px-4 pt-4 pb-12 gap-4 bg-white dark:bg-[#0A0A0A]">
                 {/* Filename Input */}
                 <View>
-                    <Text className="text-[#9C9CA3] text-xs font-bold uppercase tracking-wider mb-2">
+                    <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs font-bold uppercase tracking-wider mb-2">
                         PDF File Name
                     </Text>
                     <TextInput
@@ -643,7 +648,7 @@ export default function ImagesToPDFScreen() {
                         placeholderTextColor="#5C5C61"
                         autoCapitalize="none"
                         autoCorrect={false}
-                        className="bg-[#1C1C1E] border border-[#2C2C2E] text-white rounded-2xl px-4 py-3 text-base font-semibold focus:border-[#FF3B30]"
+                        className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-white rounded-2xl px-4 py-3 text-base font-semibold focus:border-[#FF3B30]"
                     />
                 </View>
 
@@ -651,9 +656,9 @@ export default function ImagesToPDFScreen() {
                 <View className="flex-row gap-4">
                     <Pressable
                         onPress={pickMoreImages}
-                        className="flex-1 bg-[#1C1C1E] py-4 rounded-2xl items-center active:opacity-80 border border-[#2C2C2E]"
+                        className="flex-1 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-transparent py-4 rounded-2xl items-center active:opacity-80 border border-[#E5E5EA] dark:border-[#2C2C2E]"
                     >
-                        <Text className="text-white text-base font-bold">Add Images</Text>
+                        <Text className="text-[#1C1C1E] dark:text-white text-base font-bold">Add Images</Text>
                     </Pressable>
 
                     <Pressable
@@ -677,10 +682,10 @@ export default function ImagesToPDFScreen() {
       {converting && (
         <View className="absolute inset-0 bg-black/80 items-center justify-center z-50 px-8">
           <ActivityIndicator size="large" color="#FF3B30" />
-          <Text className="text-white text-lg font-black mt-6 text-center">
+          <Text className="text-[#1C1C1E] dark:text-white text-lg font-black mt-6 text-center">
             Generating PDF File
           </Text>
-          <Text className="text-[#9C9CA3] text-xs font-semibold mt-2 text-center">
+          <Text className="text-[#8E8E93] dark:text-[#9C9CA3] text-xs font-semibold mt-2 text-center">
             {progressText}
           </Text>
         </View>
